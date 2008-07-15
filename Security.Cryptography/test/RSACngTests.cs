@@ -93,5 +93,29 @@ namespace Security.Cryptography.Test
                 Assert.IsTrue(String.Equals(secret, rtSecret, StringComparison.Ordinal));
             }
         }
+
+        /// <summary>
+        ///     Make sure that we can import / export an RSA key through XML
+        /// </summary>
+        [TestMethod]
+        public void RSACngXmlRoundTripTest()
+        {
+            using (RSACng rsa = new RSACng())
+            using (RSACng rsaRT = new RSACng())
+            using (RNGCng rng = new RNGCng())
+            {
+                string keyXml = rsa.ToXmlString(false); // The default KSP does not support importing full RSA key blobs
+                rsaRT.FromXmlString(keyXml);
+
+                rsa.SignaturePaddingMode = AsymmetricPaddingMode.Pkcs1;
+                rsaRT.SignaturePaddingMode = AsymmetricPaddingMode.Pkcs1;
+
+                byte[] data = new byte[2000];
+                rng.GetBytes(data);
+
+                byte[] signature = rsa.SignData(data);
+                Assert.IsTrue(rsaRT.VerifyData(data, signature));
+            }
+        }
     }
 }

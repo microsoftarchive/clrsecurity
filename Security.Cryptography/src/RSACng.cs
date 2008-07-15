@@ -414,6 +414,8 @@ namespace Security.Cryptography
                     pBcryptBlob->Magic = publicOnly ? BCryptNative.KeyBlobMagicNumber.RsaPublic :
                                                       BCryptNative.KeyBlobMagicNumber.RsaPrivate;
 
+                    pBcryptBlob->BitLength = parameters.Modulus.Length * 8;
+
                     pBcryptBlob->cbPublicExp = parameters.Exponent.Length;
                     pBcryptBlob->cbModulus = parameters.Modulus.Length;
 
@@ -446,7 +448,12 @@ namespace Security.Cryptography
                 }
             }
 
+            // CngKey.Import will demand KeyContainerPermission since it doesn't know if the RSA blobs contain
+            // an embedded key container name or not.  Since we built the blob ourselves, we know that we
+            // didn't specify a key container, so we can assert that demand away.
+            new KeyContainerPermission(KeyContainerPermissionFlags.Import).Assert();
             Key = CngKey.Import(rsaBlob, publicOnly ? s_rsaPublicBlob : s_rsaPrivateBlob);
+            CodeAccessPermission.RevertAssert();
         }
 
         //
