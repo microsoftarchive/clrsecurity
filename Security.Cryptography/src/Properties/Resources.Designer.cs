@@ -70,6 +70,24 @@ namespace Security.Cryptography.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Alias &apos;{0}&apos; already exists in the CryptoConfig2 map..
+        /// </summary>
+        internal static string DuplicateCryptoConfigAlias {
+            get {
+                return ResourceManager.GetString("DuplicateCryptoConfigAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Null or empty CryptoConfig aliases are invalid..
+        /// </summary>
+        internal static string EmptyCryptoConfigAlias {
+            get {
+                return ResourceManager.GetString("EmptyCryptoConfigAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified IV was not long enough. IVs must be the same length as the block size..
         /// </summary>
         internal static string InvalidIVSize {

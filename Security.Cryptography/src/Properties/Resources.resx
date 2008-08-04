@@ -120,6 +120,12 @@
   <data name="CannotDecryptPartialBlock" xml:space="preserve">
     <value>Cannot decrypt a partial block.</value>
   </data>
+  <data name="DuplicateCryptoConfigAlias" xml:space="preserve">
+    <value>Alias '{0}' already exists in the CryptoConfig2 map.</value>
+  </data>
+  <data name="EmptyCryptoConfigAlias" xml:space="preserve">
+    <value>Null or empty CryptoConfig aliases are invalid.</value>
+  </data>
   <data name="InvalidIVSize" xml:space="preserve">
     <value>The specified IV was not long enough. IVs must be the same length as the block size.</value>
   </data>

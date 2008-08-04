@@ -3,7 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Security;
 using System.Security.Cryptography;
+using System.Security.Permissions;
+using System.Threading;
+using Security.Cryptography.Properties;
 
 namespace Security.Cryptography
 {
@@ -17,69 +22,117 @@ namespace Security.Cryptography
     /// </summary>
     public static class CryptoConfig2
     {
-        private static Dictionary<string, Type> s_algorithmMap;
+        private static Dictionary<string, Type> s_algorithmMap = DefaultAlgorithmMap;
+        private static ReaderWriterLockSlim s_algorithmMapLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
 
         /// <summary>
-        ///     Mapping of algorithm names to algorithm types
+        ///     Default mapping of algorithm names to algorithm types
         /// </summary>
-        private static Dictionary<string, Type> AlgorithmMap
+        private static Dictionary<string, Type> DefaultAlgorithmMap
         {
             get
             {
-                if (s_algorithmMap == null)
-                {
-                    Dictionary<string, Type> map = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
+                Dictionary<string, Type> map = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
 
-                    //
-                    // System.Core algorithms
-                    //
+                //
+                // System.Core algorithms
+                //
 
-                    map.Add("AES", typeof(AesCryptoServiceProvider));
-                    AddAlgorithm(map, typeof(AesCryptoServiceProvider));
-                    AddAlgorithm(map, typeof(AesManaged));
+                AddAlgorithmToMap(map, typeof(AesCryptoServiceProvider), "AES");
+                AddAlgorithmToMap(map, typeof(AesManaged));
 
-                    map.Add("ECDsa", typeof(ECDsaCng));
-                    AddAlgorithm(map, typeof(ECDsaCng));
+                AddAlgorithmToMap(map, typeof(ECDsaCng), "ECDsa");
 
-                    map.Add("ECDH", typeof(ECDiffieHellmanCng));
-                    map.Add("ECDiffieHellman", typeof(ECDiffieHellmanCng));
-                    AddAlgorithm(map, typeof(ECDiffieHellmanCng));
+                AddAlgorithmToMap(map, typeof(ECDiffieHellmanCng), "ECDH", "ECDiffieHellman");
 
-                    AddAlgorithm(map, typeof(MD5Cng));
-                    AddAlgorithm(map, typeof(SHA1Cng));
-                    AddAlgorithm(map, typeof(SHA256Cng));
-                    AddAlgorithm(map, typeof(SHA256CryptoServiceProvider));
-                    AddAlgorithm(map, typeof(SHA384Cng));
-                    AddAlgorithm(map, typeof(SHA384CryptoServiceProvider));
-                    AddAlgorithm(map, typeof(SHA512Cng));
-                    AddAlgorithm(map, typeof(SHA512CryptoServiceProvider));
+                AddAlgorithmToMap(map, typeof(MD5Cng));
+                AddAlgorithmToMap(map, typeof(SHA1Cng));
+                AddAlgorithmToMap(map, typeof(SHA256Cng));
+                AddAlgorithmToMap(map, typeof(SHA256CryptoServiceProvider));
+                AddAlgorithmToMap(map, typeof(SHA384Cng));
+                AddAlgorithmToMap(map, typeof(SHA384CryptoServiceProvider));
+                AddAlgorithmToMap(map, typeof(SHA512Cng));
+                AddAlgorithmToMap(map, typeof(SHA512CryptoServiceProvider));
 
-                    //
-                    // Security.Cryptography algorithms
-                    //
+                //
+                // Security.Cryptography algorithms
+                //
 
-                    AddAlgorithm(map, typeof(AesCng));
-                    AddAlgorithm(map, typeof(RNGCng));
-                    AddAlgorithm(map, typeof(RSACng));
-                    AddAlgorithm(map, typeof(TripleDESCng));
+                AddAlgorithmToMap(map, typeof(AesCng));
+                AddAlgorithmToMap(map, typeof(RNGCng));
+                AddAlgorithmToMap(map, typeof(RSACng));
+                AddAlgorithmToMap(map, typeof(TripleDESCng));
 
-                    s_algorithmMap = map;
-                }
-
-                return s_algorithmMap;
+                return map;
             }
         }
 
         /// <summary>
-        ///     Add an algorithm to the type map
+        ///     Add an algorithm to the default map used in this AppDomain
         /// </summary>
-        private static void AddAlgorithm(Dictionary<string, Type> map, Type algorithm)
+        [PermissionSet(SecurityAction.LinkDemand, Unrestricted = true)]
+        public static void AddAlgorithm(Type algorithm, params string[] aliases)
+        {
+            if (algorithm == null)
+                throw new ArgumentNullException("algorithm");
+            if (aliases == null)
+                throw new ArgumentNullException("aliases");
+
+            s_algorithmMapLock.EnterWriteLock();
+            try
+            {
+                // Make sure that we don't already have mappings for the input aliases - we want to eagerly
+                // check for this rather than just letting the hash table insert fail so that the map doesn't
+                // end up with some of the aliases added and others not added.
+                // 
+                // Note that we're explicitly not trying to protect against having the same alias added
+                // multiple times via the same call to AddAlgorithm, since that problem is detectable by the
+                // user of the API whereas detecting a conflict with another alias which had been previously
+                // added cannot be reliably detected in the presense of multiple threads.
+                foreach (string alias in aliases)
+                {
+                    if (String.IsNullOrEmpty(alias))
+                    {
+                        throw new InvalidOperationException(Resources.EmptyCryptoConfigAlias);
+                    }
+
+                    if (s_algorithmMap.ContainsKey(alias))
+                    {
+                        throw new InvalidOperationException(String.Format(Resources.Culture, Resources.DuplicateCryptoConfigAlias, alias));
+                    }
+                }
+
+                AddAlgorithmToMap(s_algorithmMap, algorithm, aliases);
+            }
+            finally
+            {
+                s_algorithmMapLock.ExitWriteLock();
+            }
+        }
+
+        /// <summary>
+        ///     Add an algorithm to a given type map
+        /// </summary>
+        private static void AddAlgorithmToMap(Dictionary<string, Type> map, Type algorithm, params string[] aliases)
         {
             Debug.Assert(map != null, "map != null");
             Debug.Assert(algorithm != null, "algorithm != null");
 
-            map.Add(algorithm.Name, algorithm);
-            map.Add(algorithm.FullName, algorithm);
+            foreach (string alias in aliases)
+            {
+                Debug.Assert(!String.IsNullOrEmpty(alias), "!String.IsNullOrEmpty(alias)");
+                map.Add(alias, algorithm);
+            }
+
+            if (!map.ContainsKey(algorithm.Name))
+            {
+                map.Add(algorithm.Name, algorithm);
+            }
+
+            if (!map.ContainsKey(algorithm.FullName))
+            {
+                map.Add(algorithm.FullName, algorithm);
+            }
         }
 
         /// <summary>
@@ -99,10 +152,18 @@ namespace Security.Cryptography
 
             // If we couldn't find the algorithm in crypto config, see if we have an internal mapping for
             // the name
-            Type cryptoConfig2Type = null;
-            if (AlgorithmMap.TryGetValue(name, out cryptoConfig2Type))
+            s_algorithmMapLock.EnterReadLock();
+            try
             {
-                return Activator.CreateInstance(cryptoConfig2Type);
+                Type cryptoConfig2Type = null;
+                if (s_algorithmMap.TryGetValue(name, out cryptoConfig2Type))
+                {
+                    return Activator.CreateInstance(cryptoConfig2Type);
+                }
+            }
+            finally
+            {
+                s_algorithmMapLock.ExitReadLock();
             }
 
             // Otherwise we don't know how to create this type, so just return null

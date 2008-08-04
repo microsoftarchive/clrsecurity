@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -91,13 +92,85 @@ namespace Security.Cryptography.Test
                     new Mapping { Name = "Security.Cryptography.TripleDESCng", ExpectedType = typeof(TripleDESCng) }
             };
 
-            foreach (Mapping mapping in cryptoConfig2Mappings)
+            CheckMappings(cryptoConfig2Mappings);
+        }
+
+        [TestMethod]
+        public void CryptoConfig2AddMappingTest()
+        {
+            List<Mapping> addedMappings = new List<Mapping>();
+
+            // Make sure that registering a class a class without any alises works
+            CryptoConfig2.AddAlgorithm(typeof(NewAlgorithm1));
+            addedMappings.Add(new Mapping { Name = "NewAlgorithm1", ExpectedType = typeof(NewAlgorithm1) });
+            addedMappings.Add(new Mapping { Name = "Security.Cryptography.Test.NewAlgorithm1", ExpectedType = typeof(NewAlgorithm1) });
+            CheckMappings(addedMappings);
+
+            // Re-registering the same class with some new aliases should also work
+            CryptoConfig2.AddAlgorithm(typeof(NewAlgorithm1), "NA1", "NewAlg1");
+            addedMappings.Add(new Mapping { Name = "NA1", ExpectedType = typeof(NewAlgorithm1) });
+            addedMappings.Add(new Mapping { Name = "NewAlg1", ExpectedType = typeof(NewAlgorithm1) });
+            CheckMappings(addedMappings);
+
+            // Adding alaises even once we've already added alaises should continue to work
+            CryptoConfig2.AddAlgorithm(typeof(NewAlgorithm1), "New-Alg-1");
+            addedMappings.Add(new Mapping { Name = "New-Alg-1", ExpectedType = typeof(NewAlgorithm1) });
+            CheckMappings(addedMappings);
+
+            // Add an algorithm and some alaises at the same time, should work the same as doing the above all at once
+            CryptoConfig2.AddAlgorithm(typeof(NewAlgorithm2), "NA2", "NewAlg2", "New-Alg-2");
+            addedMappings.Add(new Mapping { Name = "NewAlgorithm2", ExpectedType = typeof(NewAlgorithm2) });
+            addedMappings.Add(new Mapping { Name = "Security.Cryptography.Test.NewAlgorithm2", ExpectedType = typeof(NewAlgorithm2) });
+            addedMappings.Add(new Mapping { Name = "NA2", ExpectedType = typeof(NewAlgorithm2) });
+            addedMappings.Add(new Mapping { Name = "NewAlg2", ExpectedType = typeof(NewAlgorithm2) });
+            addedMappings.Add(new Mapping { Name = "New-Alg-2", ExpectedType = typeof(NewAlgorithm2) });
+            CheckMappings(addedMappings);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void CryptoConfig2AddEmptyMappingTest()
+        {
+            CryptoConfig2.AddAlgorithm(typeof(NewAlgorithm3), "NA3", "", "New-Alg-3");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void CryptoConfig2AddNullMappingTest()
+        {
+            CryptoConfig2.AddAlgorithm(typeof(NewAlgorithm4), "NA4", "NewAlg4", null);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void CryptoConfig2AddDuplicateMappingTest()
+        {
+            CryptoConfig2.AddAlgorithm(typeof(NewAlgorithm5), "NA5", "NewAlg5", "New-Alg5");
+            CryptoConfig2.AddAlgorithm(typeof(NewAlgorithm6), "NA5");
+        }
+
+        /// <summary>
+        ///     Utility method to assist in making sure a set of mappings are correctly registered in CryptoConfig2
+        /// </summary>
+        private static void CheckMappings(IEnumerable<Mapping> mappings)
+        {
+            foreach (Mapping mapping in mappings)
             {
                 object algorithm = CryptoConfig2.CreateFromName(mapping.Name);
                 Assert.IsNotNull(algorithm, "Failed to create algorithm in CryptoConfig2 for " + mapping.Name);
                 Assert.AreEqual(mapping.ExpectedType, algorithm.GetType(), "Failed to map CryptoConfig2 for " + mapping.Name);
-
             }
         }
     }
+
+    //
+    // Classes to test registering in CryptoConfig
+    //
+
+    public class NewAlgorithm1 { }
+    public class NewAlgorithm2 { }
+    public class NewAlgorithm3 { }
+    public class NewAlgorithm4 { }
+    public class NewAlgorithm5 { }
+    public class NewAlgorithm6 { }
 }
