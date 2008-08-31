@@ -24,8 +24,6 @@ namespace Security.Cryptography
     {
         private static KeySizes[] s_legalKeySizes = new KeySizes[] { new KeySizes(384, 16384, 8) };
         
-        private static CngAlgorithm s_algorithmName = new CngAlgorithm(BCryptNative.AlgorithmName.Rsa);
-
         // CngKeyBlob formats for RSA key blobs
         private static CngKeyBlobFormat s_rsaFullPrivateBlob = new CngKeyBlobFormat(BCryptNative.KeyBlobType.RsaFullPrivateBlob);
         private static CngKeyBlobFormat s_rsaPrivateBlob = new CngKeyBlobFormat(BCryptNative.KeyBlobType.RsaPrivateBlob);
@@ -139,7 +137,7 @@ namespace Security.Cryptography
                                                                   BitConverter.GetBytes(KeySize),
                                                                   CngPropertyOptions.None);
                     creationParameters.Parameters.Add(keySizeProperty);
-                    m_key = CngKey.Create(s_algorithmName, null, creationParameters);
+                    m_key = CngKey.Create(CngAlgorithm2.Rsa, null, creationParameters);
                 }
 
                 return m_key;

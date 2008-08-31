@@ -4,6 +4,8 @@
             <Word>cng</Word>
             <Word>oaep</Word>
             <Word>pkcs</Word>
+            <Word>rsa</Word>
+            <Word>sha</Word>
         </Recognized>
     </Words>
 </Dictionary>
