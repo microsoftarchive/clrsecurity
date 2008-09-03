@@ -52,6 +52,27 @@ namespace Security.Cryptography.X509Certificates
     internal static class X509Native
     {
         //
+        // Enumerations
+        // 
+
+        /// <summary>
+        ///     Well known certificate property IDs
+        /// </summary>
+        internal enum CertificateProperty
+        {
+            KeyProviderInfo                     = 2,    // CERT_KEY_PROV_INFO_PROP_ID 
+        }
+
+        /// <summary>
+        ///     Error codes returned from X509 APIs
+        /// </summary>
+        internal enum ErrorCode
+        {
+            Success                 = 0x00000000,       // ERROR_SUCCESS
+            MoreData                = 0x000000ea,       // ERROR_MORE_DATA
+        }
+
+        //
         // Structures
         //
 
@@ -77,6 +98,26 @@ namespace Security.Cryptography.X509Certificates
             internal IntPtr rgExtension;                // CERT_EXTENSION[cExtension]
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct CERT_KEY_PROV_INFO
+        {
+            [MarshalAs(UnmanagedType.LPWStr)]
+            internal string pwszContainerName;
+
+            [MarshalAs(UnmanagedType.LPWStr)]
+            internal string pwszProvName;
+
+            internal int dwProvType;
+
+            internal int dwFlags;
+
+            internal int cProvParam;
+
+            internal IntPtr rgProvParam;        // PCRYPT_KEY_PROV_PARAM
+
+            internal int dwKeySpec;
+        }
+
         //
         // P/Invokes
         //
@@ -94,6 +135,13 @@ namespace Security.Cryptography.X509Certificates
                                                                                               [In] ref Win32Native.SYSTEMTIME pStartTime,
                                                                                               [In] ref Win32Native.SYSTEMTIME pEndTime,
                                                                                               [In] ref CERT_EXTENSIONS pExtensions);
+
+            [DllImport("crypt32.dll", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            internal static extern bool CertGetCertificateContextProperty(IntPtr pCertContext,          // PCERT_CONTEXT
+                                                                          CertificateProperty dwPropId,
+                                                                          [Out, MarshalAs(UnmanagedType.LPArray)] byte[] pvData,
+                                                                          [In, Out] ref int pcbData);
         }
 
         //
@@ -261,7 +309,84 @@ namespace Security.Cryptography.X509Certificates
             }
         }
 
-                                                               
+        /// <summary>
+        ///     Get an arbitrary property of a certificate
+        /// </summary>
+        [SecurityCritical]
+        [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "SecurityCritical API which requires review to call")]
+        internal static byte[] GetCertificateProperty(IntPtr certificateContext,
+                                                      CertificateProperty property)
+        {
+            Debug.Assert(certificateContext != IntPtr.Zero, "certificateContext != IntPtr.Zero");
+
+            byte[] buffer = null;
+            int bufferSize = 0;
+            if (!UnsafeNativeMethods.CertGetCertificateContextProperty(certificateContext,
+                                                                       property,
+                                                                       buffer,
+                                                                       ref bufferSize))
+            {
+                ErrorCode errorCode = (ErrorCode)Marshal.GetLastWin32Error();
+                if (errorCode != ErrorCode.MoreData)
+                {
+                    throw new CryptographicException((int)errorCode);
+                }
+            }
+
+            buffer = new byte[bufferSize];
+            if (!UnsafeNativeMethods.CertGetCertificateContextProperty(certificateContext,
+                                                                       property,
+                                                                       buffer,
+                                                                       ref bufferSize))
+            {
+                throw new CryptographicException(Marshal.GetLastWin32Error());
+            }
+
+            return buffer;
+        }
+
+        /// <summary>
+        ///     Get a property of a certificate formatted as a structure
+        /// </summary>
+        [SecurityCritical]
+        [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "SecurityCritical API which requires review to call")]
+        internal static T GetCertificateProperty<T>(IntPtr certificateContext,
+                                                    CertificateProperty property) where T : struct
+        {
+            Debug.Assert(certificateContext != IntPtr.Zero, "certificateContext != IntPtr.Zero");
+
+            byte[] rawProperty = GetCertificateProperty(certificateContext, property);
+            Debug.Assert(rawProperty.Length >= Marshal.SizeOf(typeof(T)), "Property did not return expected structure");
+
+            unsafe
+            {
+                fixed (byte* pRawProperty = &rawProperty[0])
+                {
+                    return (T)Marshal.PtrToStructure(new IntPtr(pRawProperty), typeof(T));
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Determine if a certificate has a specific property
+        /// </summary>
+        [SecurityCritical]
+        [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "SecurityCritical API which requires review to call")]
+        internal static bool HasCertificateProperty(IntPtr certificateContext,
+                                                    CertificateProperty property)
+        {
+            Debug.Assert(certificateContext != IntPtr.Zero, "certificateContext != IntPtr.Zero");
+
+            byte[] buffer = null;
+            int bufferSize = 0;
+            bool gotProperty = UnsafeNativeMethods.CertGetCertificateContextProperty(certificateContext,
+                                                                                     property,
+                                                                                     buffer,
+                                                                                     ref bufferSize);
+            return gotProperty ||
+                   (ErrorCode)Marshal.GetLastWin32Error() == ErrorCode.MoreData;
+        }
+
         /// <summary>
         ///     Get the corresponding OID for an X509 certificate signature algorithm
         /// </summary>

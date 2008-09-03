@@ -74,6 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="X509Certificates\X509CertificateCreationParameters.cs" />
+    <Compile Include="X509Certificates\X509CertificateExtensionMethods.cs" />
     <Compile Include="X509Certificates\X509Native.cs" />
   </ItemGroup>
   <ItemGroup>
