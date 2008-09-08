@@ -199,6 +199,11 @@ namespace Security.Cryptography.X509Certificates
                 // If we're not supposed to release they key handle, then we need to bump the reference count
                 // on the safe handle to correspond to the reference that Windows is holding on to.  This will
                 // prevent the CLR from freeing the object handle.
+                // 
+                // This is certainly not the ideal way to solve this problem - it would be better for
+                // SafeNCryptKeyHandle to maintain an internal bool field that we could toggle here and
+                // have that suppress the release when the CLR calls the ReleaseHandle override.  However, that
+                // field does not currently exist, so we'll use this hack instead.
                 if (privateKey != null && !freeKey)
                 {
                     bool addedRef = false;
