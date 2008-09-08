@@ -36,10 +36,60 @@ namespace Microsoft.Security.Cryptography.X509Certificates.Test
         }
 
         /// <summary>
+        ///     Tests for getting the private key of a CNG certificate
+        /// </summary>
+        [TestMethod]
+        public void GetCngPrivateKeyTest()
+        {
+            // The known Microsoft cert does not have a CNG private key
+            Assert.IsNull(s_microsoftCert.GetCngPrivateKey());
+
+            const string keyName = "Microsoft.Security.Cryptography.X509Certificates.Test.X509Certificate2Tests.GetCngPrivateKeyTest.RSA1";
+            try
+            {
+                // Create a cert for a persisted CNG key
+                CngKeyCreationParameters keyCreationParams = new CngKeyCreationParameters();
+                keyCreationParams.ExportPolicy = CngExportPolicies.AllowExport | CngExportPolicies.AllowPlaintextExport;
+                using (CngKey key = CngKey.Create(CngAlgorithm2.Rsa, keyName, keyCreationParams))
+                {
+                    X509CertificateCreationParameters creationParams =
+                        new X509CertificateCreationParameters(new X500DistinguishedName("CN=CngCert"));
+                    creationParams.CertificateCreationOptions = X509CertificateCreationOptions.None;
+
+                    // A CNG certificate using a named key which is linked to the cert itself should return true
+                    X509Certificate2 cngFullCert = key.CreateSelfSignedCertificate(creationParams);
+                    using (CngKey certKey = cngFullCert.GetCngPrivateKey())
+                    {
+                        Assert.AreEqual(keyName, certKey.KeyName);
+                    }
+
+                    // Create a cert with just the public key - there should be no access to the private key
+                    byte[] publicCertData = cngFullCert.Export(X509ContentType.Cert);
+                    X509Certificate2 cngPublicCert = new X509Certificate2(publicCertData);
+                    Assert.IsFalse(cngPublicCert.HasPrivateKey);
+                    Assert.IsNull(cngPublicCert.GetCngPrivateKey());
+
+                    key.Delete();
+                }
+            }
+            finally
+            {
+                // Make sure to delete the persisted key so we're clean for the next run.
+                if (CngKey.Exists(keyName))
+                {
+                    using (CngKey key = CngKey.Open(keyName))
+                    {
+                        key.Delete();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         ///     Tests to ensure that HasCngKey returns false on an opened cert
         /// </summary>
         [TestMethod]
-        public void HasCngKeyTestOpenedCert()
+        public void HasCngKeyTestOpenedCertTest()
         {
             Assert.IsFalse(s_microsoftCert.HasCngKey());
         }
@@ -48,7 +98,7 @@ namespace Microsoft.Security.Cryptography.X509Certificates.Test
         ///     Tests to ensure HasCngKey returns true on a CNG certificate
         /// </summary>
         [TestMethod]
-        public void HasCngKeyTestCngCert()
+        public void HasCngKeyTestCngCertTest()
         {
             const string keyName = "Microsoft.Security.Cryptography.X509Certificates.Test.X509Certificate2Tests.HasCngKeyTest.RSA1";
             try

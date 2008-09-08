@@ -34,10 +34,10 @@ namespace Microsoft.Security.Cryptography.Test
                 Assert.AreEqual("TestCert", cert.GetNameInfo(X509NameType.SimpleName, true));
                 Assert.AreEqual("TestCert", cert.GetNameInfo(X509NameType.SimpleName, false));
 
-                Assert.IsTrue(cert.NotBefore.Date.Equals(preCreationTime.Date) ||
-                              cert.NotBefore.Date.Equals(postCreationTime.Date));
-                Assert.IsTrue(cert.NotAfter.Date.Equals(preCreationTime.Date.AddYears(1)) ||
-                              cert.NotAfter.Date.Equals(postCreationTime.Date.AddYears(1)));
+                Assert.IsTrue(cert.NotBefore.ToUniversalTime().Date.Equals(preCreationTime.Date) ||
+                              cert.NotBefore.ToUniversalTime().Date.Equals(postCreationTime.Date));
+                Assert.IsTrue(cert.NotAfter.ToUniversalTime().Date.Equals(preCreationTime.Date.AddYears(1)) ||
+                              cert.NotAfter.ToUniversalTime().Date.Equals(postCreationTime.Date.AddYears(1)));
 
                 // Try to round trip through PFX
                 pfx = cert.Export(X509ContentType.Pfx, "TestPassword");
@@ -48,10 +48,10 @@ namespace Microsoft.Security.Cryptography.Test
             Assert.AreEqual("TestCert", rtCert.GetNameInfo(X509NameType.SimpleName, true));
             Assert.AreEqual("TestCert", rtCert.GetNameInfo(X509NameType.SimpleName, false));
 
-            Assert.IsTrue(rtCert.NotBefore.Date.Equals(preCreationTime.Date) ||
-                          rtCert.NotBefore.Date.Equals(postCreationTime.Date));
-            Assert.IsTrue(rtCert.NotAfter.Date.Equals(preCreationTime.Date.AddYears(1)) ||
-                          rtCert.NotAfter.Date.Equals(postCreationTime.Date.AddYears(1)));
+            Assert.IsTrue(rtCert.NotBefore.ToUniversalTime().Date.Equals(preCreationTime.Date) ||
+                          rtCert.NotBefore.ToUniversalTime().Date.Equals(postCreationTime.Date));
+            Assert.IsTrue(rtCert.NotAfter.ToUniversalTime().Date.Equals(preCreationTime.Date.AddYears(1)) ||
+                          rtCert.NotAfter.ToUniversalTime().Date.Equals(postCreationTime.Date.AddYears(1)));
         }
 
         /// <summary>
