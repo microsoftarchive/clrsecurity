@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Security", "src\Security.csproj", "{79647228-BF47-4746-BA75-7AD02C96B67E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Security.Test", "test\Security.Test.csproj", "{29670CF2-5A76-49C1-9A60-7BC16B1ED0B3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{ABE6C3F2-A4A3-45D5-BDF1-73C1C8B7CA75}"
+	ProjectSection(SolutionItems) = preProject
+		AssemblyVersion.cs = AssemblyVersion.cs
+		LocalTestRun.testrunconfig = LocalTestRun.testrunconfig
+		Security.vsmdi = Security.vsmdi
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = Security.vsmdi
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{79647228-BF47-4746-BA75-7AD02C96B67E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79647228-BF47-4746-BA75-7AD02C96B67E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79647228-BF47-4746-BA75-7AD02C96B67E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79647228-BF47-4746-BA75-7AD02C96B67E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{29670CF2-5A76-49C1-9A60-7BC16B1ED0B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29670CF2-5A76-49C1-9A60-7BC16B1ED0B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29670CF2-5A76-49C1-9A60-7BC16B1ED0B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29670CF2-5A76-49C1-9A60-7BC16B1ED0B3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
