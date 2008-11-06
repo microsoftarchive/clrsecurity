@@ -43,6 +43,16 @@ namespace Security.Test
         }
 
         /// <summary>
+        ///     Tests for the IsHomogenous extension method
+        /// </summary>
+        [TestMethod]
+        public void IsHomogenousTest()
+        {
+            Assert.IsTrue(AppDomainFactory.CreateHomogenousDomain(new PermissionSet(PermissionState.Unrestricted)).IsHomogenous());
+            Assert.IsFalse(AppDomainFactory.CreateLegacySandbox(AppDomain.CurrentDomain.Evidence).IsHomogenous());
+        }
+
+        /// <summary>
         ///     Tests for the IsSandbox extension method
         /// </summary>
         [TestMethod]

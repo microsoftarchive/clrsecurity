@@ -23,7 +23,7 @@ namespace Security
         {
             // If we're in a homogenous domain, then the grant set is simply the ApplicationTrust's default
             // grant set
-            if (appDomain.ApplicationTrust != null)
+            if (appDomain.IsHomogenous())
             {
                 return appDomain.ApplicationTrust.DefaultGrantSet.PermissionSet.Copy();
             }
@@ -44,6 +44,17 @@ namespace Security
             {
                 return new PermissionSet(PermissionState.Unrestricted);
             }
+        }
+
+        /// <summary>
+        ///     Determine if an AppDomain is a simple sandbox domain
+        /// </summary>
+        [SecurityCritical]
+        [SecurityTreatAsSafe]
+        [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Information about the speciifc trusted assemblies and default grant set is not exposed")]
+        public static bool IsHomogenous(this AppDomain appDomain)
+        {
+            return appDomain.ApplicationTrust != null;
         }
 
         /// <summary>

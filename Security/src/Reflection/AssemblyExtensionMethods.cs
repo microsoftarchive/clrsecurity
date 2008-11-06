@@ -40,7 +40,7 @@ namespace Security.Reflection
             }
             // If we're in a homogenous domain then this assembly is either granted the sandbox grant set or
             // full trust if it is on the trusted assemblies list.
-            else if (AppDomain.CurrentDomain.ApplicationTrust != null)
+            else if (AppDomain.CurrentDomain.IsHomogenous())
             {
                 Evidence assemblyEvidence = assembly.Evidence;
 
