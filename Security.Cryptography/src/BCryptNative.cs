@@ -71,6 +71,16 @@ namespace Security.Cryptography
         }
 
         /// <summary>
+        ///     Flags for BCryptOpenAlgorithmProvider
+        /// </summary>
+        [Flags]
+        internal enum AlgorithmProviderOptions
+        {
+            None                = 0x00000000,
+            HmacAlgorithm       = 0x00000008,                           // BCRYPT_ALG_HANDLE_HMAC_FLAG
+        }
+
+        /// <summary>
         ///     Well known chaining modes
         /// </summary>
         internal static class ChainingMode
@@ -87,6 +97,11 @@ namespace Security.Cryptography
         {
             Success = 0x00000000,                                       // STATUS_SUCCESS
             BufferToSmall = unchecked((int)0xC0000023),                 // STATUS_BUFFER_TOO_SMALL
+        }
+
+        internal static class HashPropertyName
+        {
+            internal const string HashLength = "HashDigestLength";      // BCRYPT_HASH_LENGTH
         }
 
         /// <summary>
@@ -189,6 +204,15 @@ namespace Security.Cryptography
         private static class UnsafeNativeMethods
         {
             [DllImport("bcrypt.dll")]
+            internal static extern ErrorCode BCryptCreateHash(SafeBCryptAlgorithmHandle hAlgorithm,
+                                                              [Out] out SafeBCryptHashHandle hHash,
+                                                              IntPtr pbHashObject,              // byte *
+                                                              int cbHashObject,
+                                                              [In, MarshalAs(UnmanagedType.LPArray)]byte[] pbSecret,
+                                                              int cbSecret,
+                                                              int dwFlags);
+
+            [DllImport("bcrypt.dll")]
             internal static extern ErrorCode BCryptDecrypt(SafeBCryptKeyHandle hKey,
                                                            [In, MarshalAs(UnmanagedType.LPArray)] byte[] pbInput,
                                                            int cbInput,
@@ -213,6 +237,12 @@ namespace Security.Cryptography
                                                            int dwFlags);
 
             [DllImport("bcrypt.dll")]
+            internal static extern ErrorCode BCryptFinishHash(SafeBCryptHashHandle hHash,
+                                                              [Out, MarshalAs(UnmanagedType.LPArray)] byte[] pbOutput,
+                                                              int cbOutput,
+                                                              int dwFlags);
+
+            [DllImport("bcrypt.dll")]
             internal static extern ErrorCode BCryptGenRandom(SafeBCryptAlgorithmHandle hAlgorithm,
                                                              [In, Out, MarshalAs(UnmanagedType.LPArray)] byte[] pbBuffer,
                                                              int cbBuffer,
@@ -225,6 +255,20 @@ namespace Security.Cryptography
                                                                         int cbOutput,
                                                                         [In, Out] ref int pcbResult,
                                                                         int flags);
+
+            [DllImport("bcrypt.dll", EntryPoint = "BCryptGetProperty")]
+            internal static extern ErrorCode BCryptGetHashProperty(SafeBCryptHashHandle hObject,
+                                                                   [MarshalAs(UnmanagedType.LPWStr)] string pszProperty,
+                                                                   [In, Out, MarshalAs(UnmanagedType.LPArray)] byte[] pbOutput,
+                                                                   int cbOutput,
+                                                                   [In, Out] ref int pcbResult,
+                                                                   int flags);
+
+            [DllImport("bcrypt.dll")]
+            internal static extern ErrorCode BCryptHashData(SafeBCryptHashHandle hHash,
+                                                            [In, MarshalAs(UnmanagedType.LPArray)] byte[] pbInput,
+                                                            int cbInput,
+                                                            int dwFlags);
 
             [DllImport("bcrypt.dll")]
             internal static extern ErrorCode BCryptImportKey(SafeBCryptAlgorithmHandle hAlgorithm,
@@ -241,7 +285,7 @@ namespace Security.Cryptography
             internal static extern ErrorCode BCryptOpenAlgorithmProvider([Out] out SafeBCryptAlgorithmHandle phAlgorithm,
                                                                          [MarshalAs(UnmanagedType.LPWStr)] string pszAlgId,
                                                                          [MarshalAs(UnmanagedType.LPWStr)] string pszImplementation,
-                                                                         int dwFlags);
+                                                                         AlgorithmProviderOptions dwFlags);
 
             [DllImport("bcrypt.dll", EntryPoint = "BCryptSetProperty")]
             internal static extern ErrorCode BCryptSetAlgorithmProperty(SafeBCryptAlgorithmHandle hObject,
@@ -249,6 +293,13 @@ namespace Security.Cryptography
                                                                         [In, MarshalAs(UnmanagedType.LPArray)] byte[] pbInput,
                                                                         int cbInput,
                                                                         int dwFlags);
+
+            [DllImport("bcrypt.dll", EntryPoint = "BCryptSetProperty")]
+            internal static extern ErrorCode BCryptSetHashProperty(SafeBCryptHashHandle hObject,
+                                                                   [MarshalAs(UnmanagedType.LPWStr)] string pszProperty,
+                                                                   [In, MarshalAs(UnmanagedType.LPArray)] byte[] pbInput,
+                                                                   int cbInput,
+                                                                   int dwFlags);
         }
 
         /// <summary>
@@ -275,6 +326,81 @@ namespace Security.Cryptography
         //
         // Wrapper APIs
         //
+
+        [SecurityCritical]
+        internal static SafeBCryptHashHandle CreateHash(SafeBCryptAlgorithmHandle algorithm,
+                                                        byte[] secret)
+        {
+            Debug.Assert(algorithm != null, "algorithm != null");
+            Debug.Assert(!algorithm.IsClosed && !algorithm.IsInvalid, "!algorithm.IsClosed && !algorithm.IsInvalid");
+
+            IntPtr hashObject = IntPtr.Zero;
+            SafeBCryptHashHandle hash = null;
+
+            RuntimeHelpers.PrepareConstrainedRegions();
+            try
+            {
+                // Figure out how big of a buffer is needed for the hash object and allocate it
+                int hashObjectSize = GetInt32Property(algorithm, ObjectPropertyName.ObjectLength);
+
+                RuntimeHelpers.PrepareConstrainedRegions();
+                try { }
+                finally
+                {
+                    hashObject = Marshal.AllocCoTaskMem(hashObjectSize);
+                }
+
+                // Create the hash object
+                ErrorCode error = UnsafeNativeMethods.BCryptCreateHash(algorithm,
+                                                                       out hash,
+                                                                       hashObject,
+                                                                       hashObjectSize,
+                                                                       secret,
+                                                                       secret != null ? secret.Length : 0,
+                                                                       0);
+                if (error != ErrorCode.Success)
+                {
+                    throw new CryptographicException((int)error);
+                }
+
+                // Transfer ownership of the buffer to the safe handle
+                hash.DataBuffer = hashObject;
+
+                return hash;
+            }
+            finally
+            {
+                // If the safe hash handle never took ownership of the data buffer, free it now.
+                if (hashObject != IntPtr.Zero)
+                {
+                    if (hash == null || hash.DataBuffer == IntPtr.Zero)
+                    {
+                        Marshal.FreeCoTaskMem(hashObject);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Get the results of a hashing operation
+        /// </summary>
+        [SecurityCritical]
+        internal static byte[] FinishHash(SafeBCryptHashHandle hash)
+        {
+            Debug.Assert(hash != null, "hash != null");
+            Debug.Assert(!hash.IsClosed && !hash.IsInvalid, "!hash.IsClosed && !hash.IsInvalid");
+
+            int hashSize = GetInt32Property(hash, HashPropertyName.HashLength);
+            byte[] result = new byte[hashSize];
+
+            ErrorCode error = UnsafeNativeMethods.BCryptFinishHash(hash, result, result.Length, 0);
+            if (error != ErrorCode.Success)
+            {
+                throw new CryptographicException((int)error);
+            }
+
+            return result;
+        }
 
         /// <summary>
         ///     Fill a buffer with radom bytes
@@ -359,6 +485,10 @@ namespace Security.Cryptography
             {
                 propertyGetter = new BCryptPropertyGetter<SafeBCryptAlgorithmHandle>(UnsafeNativeMethods.BCryptGetAlgorithmProperty) as BCryptPropertyGetter<T>;
             }
+            else if (typeof(T) == typeof(SafeBCryptHashHandle))
+            {
+                propertyGetter = new BCryptPropertyGetter<SafeBCryptHashHandle>(UnsafeNativeMethods.BCryptGetHashProperty) as BCryptPropertyGetter<T>;
+            }
 
             Debug.Assert(propertyGetter != null, "Unknown bcrypt object type");
 
@@ -384,6 +514,24 @@ namespace Security.Cryptography
             }
 
             return propertyValue;
+        }
+
+        /// <summary>
+        ///     Add some data to a hash in progress
+        /// </summary>
+        [SecurityCritical]
+        internal static void HashData(SafeBCryptHashHandle hash, byte[] data)
+        {
+            Debug.Assert(hash != null, "hash != null");
+            Debug.Assert(!hash.IsClosed && !hash.IsInvalid, "!hash.IsClosed && !hash.IsInvalid");
+            Debug.Assert(data != null, "data != null");
+
+            ErrorCode error = UnsafeNativeMethods.BCryptHashData(hash, data, data.Length, 0);
+
+            if (error != ErrorCode.Success)
+            {
+                throw new CryptographicException((int)error);
+            }
         }
 
         /// <summary>
@@ -422,7 +570,13 @@ namespace Security.Cryptography
                 // the lifetime of the algorithm handle.  Pinning for a potentially long lifetime is
                 // undesirable, so we use a native heap allocation instead.
                 int keyDataSize = GetInt32Property(algorithm, ObjectPropertyName.ObjectLength);
-                keyDataBuffer = Marshal.AllocCoTaskMem(keyDataSize);
+
+                RuntimeHelpers.PrepareConstrainedRegions();
+                try { }
+                finally
+                {
+                    keyDataBuffer = Marshal.AllocCoTaskMem(keyDataSize);
+                }
 
                 // Import the key
                 ErrorCode error = UnsafeNativeMethods.BCryptImportKey(algorithm,
@@ -440,7 +594,7 @@ namespace Security.Cryptography
                 }
 
                 // Give the key ownership of the key data buffer
-                keyHandle.KeyDataBuffer = keyDataBuffer;
+                keyHandle.DataBuffer = keyDataBuffer;
 
                 return keyHandle;
             }
@@ -448,9 +602,12 @@ namespace Security.Cryptography
             {
                 // If we allocated a key data buffer, but never transfered ownership to the key handle, then
                 // we need to free it now otherwise it will leak.
-                if (keyDataBuffer != IntPtr.Zero && keyHandle.KeyDataBuffer == IntPtr.Zero)
+                if (keyDataBuffer != IntPtr.Zero)
                 {
-                    Marshal.FreeCoTaskMem(keyDataBuffer);
+                    if (keyHandle == null ||keyHandle.DataBuffer == IntPtr.Zero)
+                    {
+                        Marshal.FreeCoTaskMem(keyDataBuffer);
+                    }
                 }
             }
         }
@@ -504,6 +661,14 @@ namespace Security.Cryptography
         [SecurityCritical]
         internal static SafeBCryptAlgorithmHandle OpenAlgorithm(string algorithm, string implementation)
         {
+            return OpenAlgorithm(algorithm, implementation, AlgorithmProviderOptions.None);
+        }
+
+        [SecurityCritical]
+        internal static SafeBCryptAlgorithmHandle OpenAlgorithm(string algorithm,
+                                                                string implementation,
+                                                                AlgorithmProviderOptions options)
+        {
             Debug.Assert(!String.IsNullOrEmpty(algorithm), "!String.IsNullOrEmpty(algorithm)");
             Debug.Assert(!String.IsNullOrEmpty(implementation), "!String.IsNullOrEmpty(implementation)");
 
@@ -511,7 +676,7 @@ namespace Security.Cryptography
             ErrorCode error = UnsafeNativeMethods.BCryptOpenAlgorithmProvider(out algorithmHandle,
                                                                               algorithm,
                                                                               implementation,
-                                                                              0);
+                                                                              options);
             if (error != ErrorCode.Success)
             {
                 throw new CryptographicException((int)error);
@@ -564,6 +729,10 @@ namespace Security.Cryptography
             if (typeof(T) == typeof(SafeBCryptAlgorithmHandle))
             {
                 propertySetter = new BCryptPropertySetter<SafeBCryptAlgorithmHandle>(UnsafeNativeMethods.BCryptSetAlgorithmProperty) as BCryptPropertySetter<T>;
+            }
+            else if (typeof(T) == typeof(SafeBCryptHashHandle))
+            {
+                propertySetter = new BCryptPropertySetter<SafeBCryptHashHandle>(UnsafeNativeMethods.BCryptSetHashProperty) as BCryptPropertySetter<T>;
             }
 
             Debug.Assert(propertySetter != null, "Unknown object type");
@@ -685,77 +854,40 @@ namespace Security.Cryptography
     }
 
     /// <summary>
-    ///     SafeHandle for a native BCRYPT_KEY_HANDLE.
-    ///     
-    ///     Since BCrypt keys require a buffer for object data, this safe handle owns two resources - the
-    ///     BCRYPT_KEY_HANDLE itself, along with a buffer on the native heap which was allocated with
-    ///     CoAllocTaskMem.
-    ///     
-    ///     This is required rather than having a seperate safe handle own the key data buffer blob so
-    ///     that we can ensure that the key handle is disposed of before the key data buffer is freed.
+    ///     SafeHandle for a BCRYPT_HASH_HANDLE.
     /// </summary>
     [SecurityCritical(SecurityCriticalScope.Everything)]
-    internal sealed class SafeBCryptKeyHandle : SafeHandleZeroOrMinusOneIsInvalid
+    internal sealed class SafeBCryptHashHandle : SafeHandleWithBuffer
     {
-        private IntPtr m_keyDataBuffer;
+        [DllImport("bcrypt.dll")]
+        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
+        [SuppressUnmanagedCodeSecurity]
+        [SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass", Justification = "SafeHandle release P/Invoke")]
+        private static extern BCryptNative.ErrorCode BCryptDestroyHash(IntPtr hHash);
 
-        private SafeBCryptKeyHandle() : base(true)
+        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
+        protected override bool ReleaseNativeHandle()
         {
-            return;
+            return BCryptDestroyHash(handle) == BCryptNative.ErrorCode.Success;
         }
+    }
 
+    /// <summary>
+    ///     SafeHandle for a native BCRYPT_KEY_HANDLE.
+    /// </summary>
+    [SecurityCritical(SecurityCriticalScope.Everything)]
+    internal sealed class SafeBCryptKeyHandle : SafeHandleWithBuffer
+    {
         [DllImport("bcrypt.dll")]
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         [SuppressUnmanagedCodeSecurity]
         [SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass", Justification = "SafeHandle release P/Invoke")]
         private static extern BCryptNative.ErrorCode BCryptDestroyKey(IntPtr hKey);
 
-        public override bool IsInvalid
+        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
+        protected override bool ReleaseNativeHandle()
         {
-            get
-            {
-                return handle == IntPtr.Zero &&             // The BCRYPT_KEY_HANDLE is not valid
-                       m_keyDataBuffer == IntPtr.Zero;      // And we don't own any native memory
-            }
-        }
-
-        /// <summary>
-        ///     Buffer that holds onto the key data object. This data must be allocated with CoAllocTaskMem.
-        ///     Once the buffer is assigned into the KeyDataBuffer property, the safe handle owns the buffer
-        ///     and users of this property should not attempt to free the memory.
-        ///     
-        ///     This property should be set only once, otherwise the first data buffer will leak.
-        /// </summary>
-        internal IntPtr KeyDataBuffer
-        {
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
-            get { return m_keyDataBuffer; }
-
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
-            set
-            {
-                Debug.Assert(m_keyDataBuffer == IntPtr.Zero, "SafeBCryptKeyHandle already owns a data buffer - this will result in a native memory leak.");
-                Debug.Assert(value != IntPtr.Zero, "value != IntPtr.Zero"); 
-
-                m_keyDataBuffer = value;
-            }
-        }
-
-        protected override bool ReleaseHandle()
-        {
-            BCryptNative.ErrorCode error = BCryptNative.ErrorCode.Success;
-
-            if (handle != IntPtr.Zero)
-            {
-                error = BCryptDestroyKey(handle);
-            }
-
-            if (m_keyDataBuffer != IntPtr.Zero)
-            {
-                Marshal.FreeCoTaskMem(m_keyDataBuffer);
-            }
-
-            return error == BCryptNative.ErrorCode.Success;
+            return BCryptDestroyKey(handle) == BCryptNative.ErrorCode.Success;
         }
     }
 }

@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AesCng.cs" />
+    <Compile Include="BCryptHMAC.cs" />
     <Compile Include="BCryptNative.cs" />
     <Compile Include="BCryptSymmetricAlgorithm.cs" />
     <Compile Include="BCryptSymmetricCryptoTransform.cs" />
@@ -53,16 +54,25 @@
     <Compile Include="CapiNative.cs" />
     <Compile Include="CngAlgorithm2.cs" />
     <Compile Include="CngKeyExtensionMethods.cs" />
+    <Compile Include="CngProvider2.cs" />
     <Compile Include="CngProviderCollection.cs" />
     <Compile Include="CngProviderExtensionMethods.cs" />
     <Compile Include="CryptoConfig2.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="HMACSHA256Cng.cs" />
+    <Compile Include="HMACSHA384Cng.cs" />
+    <Compile Include="HMACSHA512Cng.cs" />
     <Compile Include="NCryptNative.cs" />
     <Compile Include="RNGCng.cs" />
     <Compile Include="RSACng.cs" />
     <Compile Include="RSAPKCS1SHA256SignatureDescription.cs" />
     <Compile Include="TripleDESCng.cs" />
     <Compile Include="Win32Native.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="Exists('..\AssemblyVersion.cs')">
+    <Compile Include="..\AssemblyVersion.cs">
+      <Link>Properties\AssemblyVersion.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />

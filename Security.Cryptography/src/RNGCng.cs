@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Security;
 using System.Security.Cryptography;
@@ -43,6 +44,18 @@ namespace Security.Cryptography
             {
                 m_algorithm.Dispose();
             }
+        }
+
+        /// <summary>
+        ///     Helper function to generate a random key value using the static RNG
+        /// </summary>
+        internal static byte[] GenerateKey(int size)
+        {
+            Debug.Assert(size > 0, "size > 0");
+
+            byte[] key = new byte[size];
+            StaticRng.GetBytes(key);
+            return key;
         }
 
         [SecurityCritical]

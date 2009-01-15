@@ -48,8 +48,19 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RNGCngTests.cs" />
     <Compile Include="RSACngTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="HMACSHA256CngTests.cs" />
+    <Compile Include="HMACSHA384CngTests.cs" />
+    <Compile Include="HMACSHA512Tests.cs" />
+    <Compile Include="Util.cs" />
     <Compile Include="X509Certificates\X509Certificate2Tests.cs" />
     <Compile Include="X509Certificates\X509CertificateCreationParametersTests.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="Exists('..\AssemblyVersion.cs')">
+    <Compile Include="..\AssemblyVersion.cs">
+      <Link>Properties\AssemblyVersion.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Security.Cryptography.csproj">
@@ -61,11 +72,4 @@
     <EmbeddedResource Include="Properties\microsoft.cer" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

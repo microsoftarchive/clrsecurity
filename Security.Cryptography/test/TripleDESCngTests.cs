@@ -227,28 +227,7 @@ namespace Security.Cryptography.Test
                 }
             }
 
-            return CompareBytes(input, roundTrip);
-        }
-
-        /// <summary>
-        ///     Utility method to compare two byte arrays for equality
-        /// </summary>
-        private static bool CompareBytes(byte[] lhs, byte[] rhs)
-        {
-            if (lhs.Length != rhs.Length)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < lhs.Length; ++i)
-            {
-                if (lhs[i] != rhs[i])
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return Util.CompareBytes(input, roundTrip);
         }
     }
 }

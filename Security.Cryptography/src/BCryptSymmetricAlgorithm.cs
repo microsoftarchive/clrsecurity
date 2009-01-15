@@ -84,14 +84,12 @@ namespace Security.Cryptography
 
         public override void GenerateIV()
         {
-            IVValue = new byte[BlockSizeValue / 8];
-            RNGCng.StaticRng.GetBytes(IVValue);
+            IVValue = RNGCng.GenerateKey(BlockSizeValue / 8);
         }
 
         public override void GenerateKey()
         {
-            KeyValue = new byte[KeySizeValue / 8];
-            RNGCng.StaticRng.GetBytes(KeyValue);
+            KeyValue = RNGCng.GenerateKey(KeySizeValue / 8);
         }
     }
 }

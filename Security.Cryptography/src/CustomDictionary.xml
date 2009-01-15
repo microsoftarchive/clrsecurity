@@ -2,6 +2,7 @@
     <Words>
         <Recognized>
             <Word>cng</Word>
+            <Word>hmac</Word>
             <Word>oaep</Word>
             <Word>pkcs</Word>
             <Word>rsa</Word>
