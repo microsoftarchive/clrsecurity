@@ -16,10 +16,17 @@ namespace Security.Cryptography
     {
         private BCryptSymmetricAlgorithm m_symmetricAlgorithm;
 
-        public TripleDESCng()
+        public TripleDESCng() : this(CngProvider2.MicrosoftPrimitiveAlgorithmProvider)
         {
+        }
+
+        public TripleDESCng(CngProvider algorithmProvider)
+        {
+            if (algorithmProvider == null)
+                throw new ArgumentNullException("algorithmProvider");
+
             m_symmetricAlgorithm = new BCryptSymmetricAlgorithm(new CngAlgorithm(BCryptNative.AlgorithmName.TripleDes),
-                                                                BCryptNative.ProviderName.MicrosoftPrimitiveProvider,
+                                                                algorithmProvider,
                                                                 LegalBlockSizesValue,
                                                                 LegalKeySizesValue);
 

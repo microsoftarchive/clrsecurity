@@ -19,12 +19,19 @@ namespace Security.Cryptography
 
         private static RNGCng s_rngCng = new RNGCng();
 
+        public RNGCng() : this(CngProvider2.MicrosoftPrimitiveAlgorithmProvider)
+        {
+        }
+
         [SecurityCritical]
         [SecurityTreatAsSafe]
-        public RNGCng()
+        public RNGCng(CngProvider algorithmProvider)
         {
+            if (algorithmProvider == null)
+                throw new ArgumentNullException("algorithmProvider");
+
             m_algorithm = BCryptNative.OpenAlgorithm(BCryptNative.AlgorithmName.Rng,
-                                                     BCryptNative.ProviderName.MicrosoftPrimitiveProvider);
+                                                     algorithmProvider.Provider);
         }
 
         /// <summary>

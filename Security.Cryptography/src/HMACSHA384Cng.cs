@@ -24,16 +24,16 @@ namespace Security.Cryptography
         {
         }
 
-        public HMACSHA384Cng(byte[] key, CngProvider provider)
+        public HMACSHA384Cng(byte[] key, CngProvider algorithmProvider)
         {
             if (key == null)
                 throw new ArgumentNullException("key");
-            if (provider == null)
-                throw new ArgumentNullException("provider");
+            if (algorithmProvider == null)
+                throw new ArgumentNullException("algorithmProvider");
 
             HashName = "SHA384";
 
-            m_hmac = new BCryptHMAC(CngAlgorithm.Sha384, provider, HashName, BlockSize, key);
+            m_hmac = new BCryptHMAC(CngAlgorithm.Sha384, algorithmProvider, HashName, BlockSize, key);
         }
 
         protected override void Dispose(bool disposing)

@@ -19,13 +19,13 @@ namespace Security.Cryptography
         [SecurityCritical]
         [SecurityTreatAsSafe]
         internal BCryptHMAC(CngAlgorithm algorithm,
-                            CngProvider provider,
+                            CngProvider algorithmProvider,
                             string hashName,
                             int blockSize,
                             byte[] key)
         {
             Debug.Assert(algorithm != null, "algorithm != null");
-            Debug.Assert(provider != null, "provider != null");
+            Debug.Assert(algorithmProvider != null, "algorithmProvider != null");
             Debug.Assert(!String.IsNullOrEmpty(hashName), "!String.IsNullOrEmpty(hashName)");
             Debug.Assert(blockSize > 0, "blockSize > 0");
             Debug.Assert(key != null, "key != null");
@@ -34,7 +34,7 @@ namespace Security.Cryptography
             HashName = hashName;
 
             m_algorithm = BCryptNative.OpenAlgorithm(algorithm.Algorithm,
-                                                     provider.Provider,
+                                                     algorithmProvider.Provider,
                                                      BCryptNative.AlgorithmProviderOptions.HmacAlgorithm);
             
             // Resetting the key will call Initialize for us, and get us setup with a hash handle,

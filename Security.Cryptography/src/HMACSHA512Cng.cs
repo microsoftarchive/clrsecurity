@@ -24,16 +24,16 @@ namespace Security.Cryptography
         {
         }
 
-        public HMACSHA512Cng(byte[] key, CngProvider provider)
+        public HMACSHA512Cng(byte[] key, CngProvider algorithmProvider)
         {
             if (key == null)
                 throw new ArgumentNullException("key");
-            if (provider == null)
-                throw new ArgumentNullException("provider");
+            if (algorithmProvider == null)
+                throw new ArgumentNullException("algorithmProvider");
 
             HashName = "SHA512";
 
-            m_hmac = new BCryptHMAC(CngAlgorithm.Sha512, provider, HashName, BlockSize, key);
+            m_hmac = new BCryptHMAC(CngAlgorithm.Sha512, algorithmProvider, HashName, BlockSize, key);
         }
 
         protected override void Dispose(bool disposing)

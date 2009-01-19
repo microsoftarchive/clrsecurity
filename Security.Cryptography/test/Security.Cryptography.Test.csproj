@@ -52,7 +52,7 @@
   <ItemGroup>
     <Compile Include="HMACSHA256CngTests.cs" />
     <Compile Include="HMACSHA384CngTests.cs" />
-    <Compile Include="HMACSHA512Tests.cs" />
+    <Compile Include="HMACSHA512CngTests.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="X509Certificates\X509Certificate2Tests.cs" />
     <Compile Include="X509Certificates\X509CertificateCreationParametersTests.cs" />

@@ -15,10 +15,17 @@ namespace Security.Cryptography
     {
         private BCryptSymmetricAlgorithm m_symmetricAlgorithm;
 
-        public AesCng()
+        public AesCng() : this(CngProvider2.MicrosoftPrimitiveAlgorithmProvider)
         {
+        }
+
+        public AesCng(CngProvider algorithmProvider)
+        {
+            if (algorithmProvider == null)
+                throw new ArgumentNullException("algorithmProvider");
+
             m_symmetricAlgorithm = new BCryptSymmetricAlgorithm(new CngAlgorithm(BCryptNative.AlgorithmName.Aes),
-                                                                BCryptNative.ProviderName.MicrosoftPrimitiveProvider,
+                                                                algorithmProvider,
                                                                 LegalBlockSizesValue,
                                                                 LegalKeySizesValue);
             

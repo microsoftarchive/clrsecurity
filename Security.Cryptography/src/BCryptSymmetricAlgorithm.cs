@@ -19,20 +19,20 @@ namespace Security.Cryptography
     internal sealed class BCryptSymmetricAlgorithm : SymmetricAlgorithm
     {
         private CngAlgorithm m_algorithm;
-        private string m_implementation;
+        private CngProvider m_algorithmProvider;
 
         internal BCryptSymmetricAlgorithm(CngAlgorithm algorithm,
-                                          string implementation,
+                                          CngProvider algorithmProvider,
                                           KeySizes[] legalBlockSizes,
                                           KeySizes[] legalkeySizes)
         {
             Debug.Assert(algorithm != null, "algorithm != null");
-            Debug.Assert(!String.IsNullOrEmpty(implementation), "!String.IsNullOrEmpty(implementation)");
+            Debug.Assert(algorithmProvider != null, "algorithmProvider != null");
             Debug.Assert(legalBlockSizes != null, "legalBlockSizes != null");
             Debug.Assert(legalkeySizes != null, "legalKeySizes != null");
 
             m_algorithm = algorithm;
-            m_implementation = implementation;
+            m_algorithmProvider = algorithmProvider;
 
             LegalBlockSizesValue = legalBlockSizes;
             LegalKeySizesValue = legalkeySizes;
@@ -45,7 +45,7 @@ namespace Security.Cryptography
         [SecurityTreatAsSafe]
         private SafeBCryptAlgorithmHandle SetupAlgorithm()
         {
-            SafeBCryptAlgorithmHandle algorithmHandle = BCryptNative.OpenAlgorithm(m_algorithm.Algorithm, m_implementation);
+            SafeBCryptAlgorithmHandle algorithmHandle = BCryptNative.OpenAlgorithm(m_algorithm.Algorithm, m_algorithmProvider.Provider);
 
             // If we've selected a different block size than the default, set that now
             if (BlockSize / 8 != BCryptNative.GetInt32Property(algorithmHandle, BCryptNative.ObjectPropertyName.BlockLength))
