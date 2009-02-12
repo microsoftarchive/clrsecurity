@@ -63,6 +63,7 @@
     <Compile Include="HMACSHA384Cng.cs" />
     <Compile Include="HMACSHA512Cng.cs" />
     <Compile Include="NCryptNative.cs" />
+    <Compile Include="Oid2.cs" />
     <Compile Include="RNGCng.cs" />
     <Compile Include="RSACng.cs" />
     <Compile Include="RSAPKCS1SHA256SignatureDescription.cs" />

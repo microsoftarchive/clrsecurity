@@ -48,12 +48,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RNGCngTests.cs" />
     <Compile Include="RSACngTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="HMACSHA256CngTests.cs" />
     <Compile Include="HMACSHA384CngTests.cs" />
     <Compile Include="HMACSHA512CngTests.cs" />
+    <Compile Include="Oid2Tests.cs" />
     <Compile Include="Util.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="X509Certificates\X509Certificate2Tests.cs" />
     <Compile Include="X509Certificates\X509CertificateCreationParametersTests.cs" />
   </ItemGroup>

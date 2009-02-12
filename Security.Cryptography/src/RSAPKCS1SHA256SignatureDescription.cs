@@ -28,6 +28,11 @@ namespace Security.Cryptography
     ///     Where the assembly name is update to refer to the assembly the signature description is hosted in.
     ///     
     ///     This signature description type requires .NET 3.5 SP 1 and Windows 2003 or higher in order to work.
+    ///
+    ///     In Windows 2003, the Oid2.RegisterSha2OidInformationForRsa method must be called at least once in
+    ///     order to get the SHA-256 OID setup in a way that the .NET Framework 3.5 SP 1 can recognize the
+    ///     SHA-256 algorithm when doing RSA signing.  This method can be called on other versions of Windows
+    ///     as well, however it is not required there.
     /// </summary>
     [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "RSAPKCS", Justification = "This casing is to match the existing RSAPKCS1SHA1SignatureDescription type")]
     [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "SHA", Justification = "This casing is to match the use of SHA throughout the framework")]
@@ -62,4 +67,3 @@ namespace Security.Cryptography
         }
     }
 }
-

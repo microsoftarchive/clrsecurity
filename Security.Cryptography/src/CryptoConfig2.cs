@@ -74,6 +74,7 @@ namespace Security.Cryptography
         ///     Add an algorithm to the default map used in this AppDomain
         /// </summary>
         [PermissionSet(SecurityAction.LinkDemand, Unrestricted = true)]
+        [SecurityCritical]
         public static void AddAlgorithm(Type algorithm, params string[] aliases)
         {
             if (algorithm == null)

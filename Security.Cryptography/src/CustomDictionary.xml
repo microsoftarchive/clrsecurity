@@ -1,9 +1,11 @@
 ﻿<Dictionary>
     <Words>
         <Recognized>
+            <Word>capi</Word>
             <Word>cng</Word>
             <Word>hmac</Word>
             <Word>oaep</Word>
+            <Word>oid</Word>
             <Word>pkcs</Word>
             <Word>rsa</Word>
             <Word>sha</Word>
