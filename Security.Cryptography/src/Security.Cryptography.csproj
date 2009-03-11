@@ -42,6 +42,7 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Data" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -99,6 +100,9 @@
     <Compile Include="X509Certificates\X509CertificateExtensionMethods.cs" />
     <Compile Include="X509Certificates\X509Certificate2ExtensionMethods.cs" />
     <Compile Include="X509Certificates\X509Native.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Xml\TransformFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="CustomDictionary.xml" />

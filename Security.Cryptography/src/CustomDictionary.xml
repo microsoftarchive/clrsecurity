@@ -17,6 +17,7 @@
             <Word>rsa</Word>
             <Word>rgb</Word>
             <Word>sha</Word>
+            <Word>xpath</Word>
         </Recognized>
     </Words>
 </Dictionary>

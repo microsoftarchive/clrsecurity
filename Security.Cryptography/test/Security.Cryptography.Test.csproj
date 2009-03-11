@@ -37,6 +37,7 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Data" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -65,6 +66,9 @@
   <ItemGroup>
     <Compile Include="X509Certificates\X509Certificate2Tests.cs" />
     <Compile Include="X509Certificates\X509CertificateCreationParametersTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Xml\TransformFactoryTests.cs" />
   </ItemGroup>
   <ItemGroup Condition="Exists('..\AssemblyVersion.cs')">
     <Compile Include="..\AssemblyVersion.cs">
