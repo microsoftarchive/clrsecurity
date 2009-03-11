@@ -16,10 +16,11 @@ namespace Security.Cryptography
     ///     Most of the real encryption work occurs in the BCryptSymmetricCryptoTransform class. (see
     ///     code:code:Microsoft.Security.Cryptography.BCryptSymmetricCryptoTransform).
     /// </summary>
-    internal sealed class BCryptSymmetricAlgorithm : SymmetricAlgorithm
+    internal sealed class BCryptSymmetricAlgorithm : SymmetricAlgorithm, ICngSymmetricAlgorithm
     {
         private CngAlgorithm m_algorithm;
         private CngProvider m_algorithmProvider;
+        private CngChainingMode m_chainingMode;
 
         internal BCryptSymmetricAlgorithm(CngAlgorithm algorithm,
                                           CngProvider algorithmProvider,
@@ -53,9 +54,44 @@ namespace Security.Cryptography
                 BCryptNative.SetInt32Property(algorithmHandle, BCryptNative.ObjectPropertyName.BlockLength, BlockSize / 8);
             }
 
-            BCryptNative.SetStringProperty(algorithmHandle, BCryptNative.ObjectPropertyName.ChainingMode, BCryptNative.MapChainingMode(Mode));
+            BCryptNative.SetStringProperty(algorithmHandle, BCryptNative.ObjectPropertyName.ChainingMode, m_chainingMode.ChainingMode);
 
             return algorithmHandle;
+        }
+
+        //
+        // ICngSymmetricAlgorithm implementation
+        //
+
+        public CngChainingMode CngMode
+        {
+            get { return m_chainingMode; }
+
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException("value");
+
+                m_chainingMode = value;
+            }
+        }
+
+        public override CipherMode Mode
+        {
+            get
+            {
+                return BCryptNative.MapChainingMode(m_chainingMode.ChainingMode);
+            }
+
+            set
+            {
+                m_chainingMode = new CngChainingMode(BCryptNative.MapChainingMode(value));
+            }
+        }
+
+        public CngProvider Provider
+        {
+            get { return m_algorithmProvider; }
         }
 
         //

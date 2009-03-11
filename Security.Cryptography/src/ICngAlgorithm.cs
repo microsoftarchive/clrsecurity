@@ -1,0 +1,19 @@
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+
+using System;
+using System.Security.Cryptography;
+
+namespace Security.Cryptography
+{
+    /// <summary>
+    ///     Interface for algorithms implemented over the CNG layer of Windows to provide CNG implementation
+    ///     details through.
+    /// </summary>
+    public interface ICngAlgorithm
+    {
+        /// <summary>
+        ///     Algorithm or key storage provider being used for the implementation
+        /// </summary>
+        CngProvider Provider { get; }
+    }
+}

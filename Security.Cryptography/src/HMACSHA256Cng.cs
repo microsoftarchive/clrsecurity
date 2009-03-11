@@ -10,7 +10,7 @@ namespace Security.Cryptography
     ///     HMAC-SHA256 implementation on top of CNG
     /// </summary>
     [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "HMACSHA", Justification = "This matches the HMAC naming in the BCL")]
-    public sealed class HMACSHA256Cng : HMAC
+    public sealed class HMACSHA256Cng : HMAC, ICngAlgorithm
     {
         private const int BlockSize = 64;
 
@@ -92,6 +92,11 @@ namespace Security.Cryptography
         public override int OutputBlockSize
         {
             get { return m_hmac.OutputBlockSize; }
+        }
+
+        public CngProvider Provider
+        {
+            get { return m_hmac.Provider; }
         }
 
         protected override void HashCore(byte[] rgb, int ib, int cb)

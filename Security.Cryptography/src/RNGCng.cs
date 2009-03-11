@@ -13,9 +13,10 @@ namespace Security.Cryptography
     ///     Random number generator using the BCrypt RNG
     /// </summary>
     [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "RNG", Justification = "This is for consistency with the existing RNGCryptoServiceProvider type")]
-    public sealed class RNGCng : RandomNumberGenerator, IDisposable
+    public sealed class RNGCng : RandomNumberGenerator, ICngAlgorithm, IDisposable
     {
         private SafeBCryptAlgorithmHandle m_algorithm;
+        private CngProvider m_implementation;
 
         private static RNGCng s_rngCng = new RNGCng();
 
@@ -32,6 +33,13 @@ namespace Security.Cryptography
 
             m_algorithm = BCryptNative.OpenAlgorithm(BCryptNative.AlgorithmName.Rng,
                                                      algorithmProvider.Provider);
+
+            m_implementation = algorithmProvider;
+        }
+
+        public CngProvider Provider
+        {
+            get { return m_implementation; }
         }
 
         /// <summary>

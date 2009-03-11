@@ -20,7 +20,7 @@ namespace Security.Cryptography
     ///     API pattern more similar to ECDsaCng than RSACryptoServiceProvider.
     /// </summary>
     [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "RSA", Justification = "This is for consistency with the existing RSACryptoServiceProvider type")]
-    public sealed class RSACng : RSA
+    public sealed class RSACng : RSA, ICngAsymmetricAlgorithm
     {
         private static KeySizes[] s_legalKeySizes = new KeySizes[] { new KeySizes(384, 16384, 8) };
         
@@ -174,6 +174,17 @@ namespace Security.Cryptography
         public override string KeyExchangeAlgorithm
         {
             get { return "RSA-PKCS1-KeyEx";  }
+        }
+
+        /// <summary>
+        ///     Key storage provider being used for the algorithm
+        /// </summary>
+        [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Only exposing provider data.")]
+        public CngProvider Provider
+        {
+            [SecurityCritical]
+            [SecurityTreatAsSafe]
+            get { return Key.Provider; }
         }
 
         public override string SignatureAlgorithm

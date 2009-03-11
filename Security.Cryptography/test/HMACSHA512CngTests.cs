@@ -17,7 +17,7 @@ namespace Security.Cryptography.Test
         ///     Comparison test with built-in HMACSHA512
         /// </summary>
         [TestMethod]
-        public void HMACSHA512Test()
+        public void HMACSHA512CngTest()
         {
             using (RNGCng rng = new RNGCng())
             {
@@ -45,7 +45,7 @@ namespace Security.Cryptography.Test
         ///     Make sure the properties of HMACSHA512 agree with the BCL properties
         /// </summary>
         [TestMethod]
-        public void HMACSH512PropertyTest()
+        public void HMACSH512CngPropertyTest()
         {
             using (HMACSHA512 bclHmac = new HMACSHA512())
             using (HMACSHA512Cng cngHmac = new HMACSHA512Cng())
@@ -54,6 +54,8 @@ namespace Security.Cryptography.Test
                 Assert.AreEqual(bclHmac.HashSize, cngHmac.HashSize);
                 Assert.AreEqual(bclHmac.InputBlockSize, cngHmac.InputBlockSize);
                 Assert.AreEqual(bclHmac.OutputBlockSize, cngHmac.OutputBlockSize);
+
+                Assert.AreEqual(CngProvider2.MicrosoftPrimitiveAlgorithmProvider, cngHmac.Provider);
             }
         }
     }

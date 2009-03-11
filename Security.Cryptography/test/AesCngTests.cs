@@ -16,6 +16,23 @@ namespace Security.Cryptography.Test
     public class AesCngTests
     {
         /// <summary>
+        ///     Ensure the default properties of an AesCng object are setup as we expect
+        /// </summary>
+        [TestMethod]
+        public void AesCngDefaultPropertiesTest()
+        {
+            using (AesCng aes = new AesCng())
+            {
+                Assert.AreEqual(128, aes.BlockSize);
+                Assert.AreEqual(CngChainingMode.Cbc, aes.CngMode);
+                Assert.AreEqual(256, aes.KeySize);
+                Assert.AreEqual(CipherMode.CBC, aes.Mode);
+                Assert.AreEqual(PaddingMode.PKCS7, aes.Padding);
+                Assert.AreEqual(CngProvider2.MicrosoftPrimitiveAlgorithmProvider, aes.Provider);
+            }
+        }
+
+        /// <summary>
         ///     Basic round trip test
         /// </summary>
         [TestMethod]
@@ -107,6 +124,11 @@ namespace Security.Cryptography.Test
                     foreach (var cipherMode in new CipherMode[] { CipherMode.CBC, CipherMode.ECB, CipherMode.CFB })
                     {
                         Assert.IsTrue(RoundTripHelper(data, typeof(AesCng), typeof(AesCng), (aes) => { aes.Mode = cipherMode; }), i.ToString() + " blocks - " + cipherMode.ToString());
+                    }
+
+                    foreach (var chainingMode in new CngChainingMode[] { CngChainingMode.Cbc, CngChainingMode.Ecb, CngChainingMode.Cfb })
+                    {
+                        Assert.IsTrue(RoundTripHelper(data, typeof(AesCng), typeof(AesCng), (aes) => { (aes as ICngSymmetricAlgorithm).CngMode = chainingMode; }), i.ToString() + " blocks - " + chainingMode.ToString());
                     }
                 }
             }

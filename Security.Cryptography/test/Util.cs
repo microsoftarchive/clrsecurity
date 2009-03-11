@@ -2,8 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
+using System.Globalization;
 
 namespace Security.Cryptography.Test
 {
@@ -28,6 +28,30 @@ namespace Security.Cryptography.Test
             }
 
             return true;
+        }
+
+        /// <summary>
+        ///     Convert a hex string into a byte array with one byte for every 2 hex characters.  Hex bytes
+        ///     may be seperated by 0 or more whitespace characters.
+        /// </summary>
+        internal static byte[] HexStringToBytes(string input)
+        {
+            if (input == null)
+                return null;
+
+            List<byte> bytes = new List<byte>();
+
+            foreach (string hexSubstring in input.Split(' ', '\t', '\n'))
+            {
+                Debug.Assert(hexSubstring.Length % 2 == 0, "hexSubstring.Length % 2 == 0");
+
+                for (int i = 0; i < hexSubstring.Length; i += 2)
+                {
+                    bytes.Add(Byte.Parse(hexSubstring.Substring(i, 2), NumberStyles.HexNumber));
+                }
+            }
+
+            return bytes.ToArray();
         }
     }
 }

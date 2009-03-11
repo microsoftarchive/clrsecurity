@@ -16,6 +16,23 @@ namespace Security.Cryptography.Test
     public class TripleDESCngTests
     {
         /// <summary>
+        ///     Ensure the default properties of an AesCng object are setup as we expect
+        /// </summary>
+        [TestMethod]
+        public void TripleDESCngDefaultPropertiesTest()
+        {
+            using (TripleDESCng tdes = new TripleDESCng())
+            {
+                Assert.AreEqual(64, tdes.BlockSize);
+                Assert.AreEqual(CngChainingMode.Cbc, tdes.CngMode);
+                Assert.AreEqual(192, tdes.KeySize);
+                Assert.AreEqual(CipherMode.CBC, tdes.Mode);
+                Assert.AreEqual(PaddingMode.PKCS7, tdes.Padding);
+                Assert.AreEqual(CngProvider2.MicrosoftPrimitiveAlgorithmProvider, tdes.Provider);
+            }
+        }
+
+        /// <summary>
         ///     Basic round trip test
         /// </summary>
         [TestMethod]
@@ -107,6 +124,11 @@ namespace Security.Cryptography.Test
                     foreach (var cipherMode in new CipherMode[] { CipherMode.CBC, CipherMode.ECB, CipherMode.CFB })
                     {
                         Assert.IsTrue(RoundTripHelper(data, typeof(TripleDESCng), typeof(TripleDESCng), (tdes) => { tdes.Mode = cipherMode; }), i.ToString() + " blocks - " + cipherMode.ToString());
+                    }
+
+                    foreach (var chainingMode in new CngChainingMode[] { CngChainingMode.Cbc, CngChainingMode.Ecb, CngChainingMode.Cfb })
+                    {
+                        Assert.IsTrue(RoundTripHelper(data, typeof(TripleDESCng), typeof(TripleDESCng), (tdes) => { (tdes as ICngSymmetricAlgorithm).CngMode = chainingMode; }), i.ToString() + " blocks - " + chainingMode.ToString());
                     }
                 }
             }

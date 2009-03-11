@@ -12,7 +12,7 @@ namespace Security.Cryptography
     ///     See code:Microsoft.Security.Cryptography.BCryptSymmetricAlgorithm
     /// </summary>
     [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "DES", Justification = "Conforms with existing TripleDES BCL pattern")]
-    public sealed class TripleDESCng : TripleDES
+    public sealed class TripleDESCng : TripleDES, ICngSymmetricAlgorithm
     {
         private BCryptSymmetricAlgorithm m_symmetricAlgorithm;
 
@@ -62,6 +62,12 @@ namespace Security.Cryptography
             set { m_symmetricAlgorithm.BlockSize = value; }
         }
 
+        public CngChainingMode CngMode
+        {
+            get { return m_symmetricAlgorithm.CngMode; }
+            set { m_symmetricAlgorithm.CngMode = value; }
+        }
+
         public override int FeedbackSize
         {
             get { return m_symmetricAlgorithm.FeedbackSize; }
@@ -106,6 +112,11 @@ namespace Security.Cryptography
         {
             get { return m_symmetricAlgorithm.Padding; }
             set { m_symmetricAlgorithm.Padding = value; }
+        }
+
+        public CngProvider Provider
+        {
+            get { return m_symmetricAlgorithm.Provider; }
         }
 
         public override ICryptoTransform CreateDecryptor()

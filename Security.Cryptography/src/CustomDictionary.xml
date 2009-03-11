@@ -2,12 +2,20 @@
     <Words>
         <Recognized>
             <Word>capi</Word>
+            <Word>cbc</Word>
+            <Word>ccm</Word>
+            <Word>cfb</Word>
             <Word>cng</Word>
+            <Word>decryptor</Word>
+            <Word>ecb</Word>
+            <Word>encryptor</Word>
+            <Word>gcm</Word>
             <Word>hmac</Word>
             <Word>oaep</Word>
             <Word>oid</Word>
             <Word>pkcs</Word>
             <Word>rsa</Word>
+            <Word>rgb</Word>
             <Word>sha</Word>
         </Recognized>
     </Words>

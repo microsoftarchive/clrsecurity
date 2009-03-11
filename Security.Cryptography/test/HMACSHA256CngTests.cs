@@ -17,7 +17,7 @@ namespace Security.Cryptography.Test
         ///     Comparison test with built-in HMACSHA256
         /// </summary>
         [TestMethod]
-        public void HMACSHA256Test()
+        public void HMACSHA256CngTest()
         {
             using (RNGCng rng = new RNGCng())
             {
@@ -45,7 +45,7 @@ namespace Security.Cryptography.Test
         ///     Make sure the properties of HMACSHA256 agree with the BCL properties
         /// </summary>
         [TestMethod]
-        public void HMACSH256PropertyTest()
+        public void HMACSH256CngPropertyTest()
         {
             using (HMACSHA256 bclHmac = new HMACSHA256())
             using (HMACSHA256Cng cngHmac = new HMACSHA256Cng())
@@ -54,6 +54,8 @@ namespace Security.Cryptography.Test
                 Assert.AreEqual(bclHmac.HashSize, cngHmac.HashSize);
                 Assert.AreEqual(bclHmac.InputBlockSize, cngHmac.InputBlockSize);
                 Assert.AreEqual(bclHmac.OutputBlockSize, cngHmac.OutputBlockSize);
+
+                Assert.AreEqual(CngProvider2.MicrosoftPrimitiveAlgorithmProvider, cngHmac.Provider);
             }
         }
     }

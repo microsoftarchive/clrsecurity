@@ -81,13 +81,26 @@ namespace Security.Cryptography
         }
 
         /// <summary>
+        ///     Flags for use with the BCRYPT_AUTHENTICATED_CIPHER_MODE_INFO structure
+        /// </summary>
+        [Flags]
+        internal enum AuthenticatedCipherModeInfoFlags
+        {
+            None                = 0x00000000,
+            ChainCalls          = 0x00000001,                           // BCRYPT_AUTH_MODE_CHAIN_CALLS_FLAG
+            InProgress          = 0x00000002,                           // BCRYPT_AUTH_MODE_IN_PROGRESS_FLAG
+        }
+
+        /// <summary>
         ///     Well known chaining modes
         /// </summary>
         internal static class ChainingMode
         {
             internal const string Cbc = "ChainingModeCBC";              // BCRYPT_CHAIN_MODE_CBC
+            internal const string Ccm = "ChainingModeCCM";              // BCRYPT_CHAIN_MODE_CCM
             internal const string Cfb = "ChainingModeCFB";              // BCRYPT_CHAIN_MODE_CFB
             internal const string Ecb = "ChainingModeECB";              // BCRYPT_CHAIN_MODE_ECB
+            internal const string Gcm = "ChainingModeGCM";              // BCRYPT_CHAIN_MODE_GCM
         }
 
         /// <summary>
@@ -96,6 +109,7 @@ namespace Security.Cryptography
         internal enum ErrorCode
         {
             Success = 0x00000000,                                       // STATUS_SUCCESS
+            AuthenticationTagMismatch = unchecked((int)0xC000A002),     // STATUS_AUTH_TAG_MISMATCH
             BufferToSmall = unchecked((int)0xC0000023),                 // STATUS_BUFFER_TOO_SMALL
         }
 
@@ -130,6 +144,7 @@ namespace Security.Cryptography
         /// </summary>
         internal static class ObjectPropertyName
         {
+            internal const string AuthTagLength = "AuthTagLength";      // BCRYPT_AUTH_TAG_LENGTH
             internal const string BlockLength = "BlockLength";          // BCRYPT_BLOCK_LENGTH
             internal const string ChainingMode = "ChainingMode";        // BCRYPT_CHAINING_MODE
             internal const string InitializationVector = "IV";          // BCRYPT_INITIALIZATION_VECTOR
@@ -150,11 +165,47 @@ namespace Security.Cryptography
         //
 
         [StructLayout(LayoutKind.Sequential)]
+        [SuppressMessage("Microsoft.Design", "CA1049:TypesThatOwnNativeResourcesShouldBeDisposable", Justification = "The resouces lifetime is owned by the containing type - as a value type, the pointers will be copied and are not owned by the value type itself.")]
+        internal struct BCRYPT_AUTHENTICATED_CIPHER_MODE_INFO
+        {
+            internal int cbSize;
+            internal int dwInfoVersion;
+
+            [SuppressMessage("Microsoft.Reliability", "CA2006:UseSafeHandleToEncapsulateNativeResources", Justification = "The handle is not owned by the value type")]
+            internal IntPtr pbNonce;            // byte *
+            internal int cbNonce;
+
+            [SuppressMessage("Microsoft.Reliability", "CA2006:UseSafeHandleToEncapsulateNativeResources", Justification = "The handle is not owned by the value type")]
+            internal IntPtr pbAuthData;         // byte *
+            internal int cbAuthData;
+
+            [SuppressMessage("Microsoft.Reliability", "CA2006:UseSafeHandleToEncapsulateNativeResources", Justification = "The handle is not owned by the value type")]
+            internal IntPtr pbTag;              // byte *
+            internal int cbTag;
+
+            [SuppressMessage("Microsoft.Reliability", "CA2006:UseSafeHandleToEncapsulateNativeResources", Justification = "The handle is not owned by the value type")]
+            internal IntPtr pbMacContext;       // byte *
+            internal int cbMacContext;
+
+            internal int cbAAD;
+            internal long cbData;
+            internal AuthenticatedCipherModeInfoFlags dwFlags;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
         internal struct BCRYPT_KEY_DATA_BLOB
         {
             internal KeyBlobMagicNumber dwMagic;
             internal int dwVersion;
             internal int cbKeyData;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct BCRYPT_KEY_LENGTHS_STRUCT
+        {
+            internal int dwMinLength;
+            internal int dwMaxLength;
+            internal int dwIncrement;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -212,6 +263,7 @@ namespace Security.Cryptography
                                                               int cbSecret,
                                                               int dwFlags);
 
+            // Overload of BCryptDecrypt for use in standard decryption
             [DllImport("bcrypt.dll")]
             internal static extern ErrorCode BCryptDecrypt(SafeBCryptKeyHandle hKey,
                                                            [In, MarshalAs(UnmanagedType.LPArray)] byte[] pbInput,
@@ -224,11 +276,38 @@ namespace Security.Cryptography
                                                            [Out] out int pcbResult,
                                                            int dwFlags);
 
+            // Overload of BCryptDecrypt for use with authenticated decryption
+            [DllImport("bcrypt.dll")]
+            internal static extern ErrorCode BCryptDecrypt(SafeBCryptKeyHandle hKey,
+                                                           [In, MarshalAs(UnmanagedType.LPArray)] byte[] pbInput,
+                                                           int cbInput,
+                                                           [In, Out] ref BCRYPT_AUTHENTICATED_CIPHER_MODE_INFO pPaddingInfo,
+                                                           [In, Out, MarshalAs(UnmanagedType.LPArray)] byte[] pbIV,
+                                                           int cbIV,
+                                                           [Out, MarshalAs(UnmanagedType.LPArray)] byte[] pbOutput,
+                                                           int cbOutput,
+                                                           [Out] out int pcbResult,
+                                                           int dwFlags);
+
+            // Overload of BCryptEncrypt for use in standard encryption
             [DllImport("bcrypt.dll")]
             internal static extern ErrorCode BCryptEncrypt(SafeBCryptKeyHandle hKey,
                                                            [In, MarshalAs(UnmanagedType.LPArray)] byte[] pbInput,
                                                            int cbInput,
                                                            IntPtr pPaddingInfo,
+                                                           [In, Out, MarshalAs(UnmanagedType.LPArray)] byte[] pbIV,
+                                                           int cbIV,
+                                                           [Out, MarshalAs(UnmanagedType.LPArray)] byte[] pbOutput,
+                                                           int cbOutput,
+                                                           [Out] out int pcbResult,
+                                                           int dwFlags);
+
+            // Overload of BCryptEncrypt for use with authenticated encryption
+            [DllImport("bcrypt.dll")]
+            internal static extern ErrorCode BCryptEncrypt(SafeBCryptKeyHandle hKey,
+                                                           [In, MarshalAs(UnmanagedType.LPArray)] byte[] pbInput,
+                                                           int cbInput,
+                                                           [In, Out] ref BCRYPT_AUTHENTICATED_CIPHER_MODE_INFO pPaddingInfo,
                                                            [In, Out, MarshalAs(UnmanagedType.LPArray)] byte[] pbIV,
                                                            int cbIV,
                                                            [Out, MarshalAs(UnmanagedType.LPArray)] byte[] pbOutput,
@@ -360,7 +439,7 @@ namespace Security.Cryptography
                                                                        0);
                 if (error != ErrorCode.Success)
                 {
-                    throw new CryptographicException((int)error);
+                    throw new CryptographicException(Win32Native.GetNTStatusMessage((int)error));
                 }
 
                 // Transfer ownership of the buffer to the safe handle
@@ -396,7 +475,7 @@ namespace Security.Cryptography
             ErrorCode error = UnsafeNativeMethods.BCryptFinishHash(hash, result, result.Length, 0);
             if (error != ErrorCode.Success)
             {
-                throw new CryptographicException((int)error);
+                throw new CryptographicException(Win32Native.GetNTStatusMessage((int)error));
             }
 
             return result;
@@ -419,7 +498,7 @@ namespace Security.Cryptography
                                                                   0);
             if (error != ErrorCode.Success)
             {
-                throw new CryptographicException((int)error);
+                throw new CryptographicException(Win32Native.GetNTStatusMessage((int)error));
             }
         }
 
@@ -469,6 +548,38 @@ namespace Security.Cryptography
         }
 
         /// <summary>
+        ///     Get a property from a BCrypt which is returned as a structure
+        /// </summary>
+        [SecurityCritical]
+        [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Internal critical API")]
+        internal static TProperty GetValueTypeProperty<THandle, TProperty>(THandle bcryptObject, string property)
+            where THandle : SafeHandle
+            where TProperty : struct
+        {
+            Debug.Assert(bcryptObject != null, "bcryptObject != null");
+            Debug.Assert(!bcryptObject.IsClosed && !bcryptObject.IsInvalid, "!bcryptObject.IsClosed && !bcryptObject.IsInvalid");
+            Debug.Assert(!String.IsNullOrEmpty(property), "!String.IsNullOrEmpty(property)");
+
+            byte[] rawProperty = GetProperty(bcryptObject, property);
+
+            if (rawProperty == null || rawProperty.Length == 0)
+            {
+                return default(TProperty);
+            }
+            else
+            {
+                Debug.Assert(Marshal.SizeOf(typeof(TProperty)) <= rawProperty.Length, "Unexpected property size");
+                unsafe
+                {
+                    fixed (byte* pPropertyBytes = rawProperty)
+                    {
+                        return (TProperty)Marshal.PtrToStructure(new IntPtr(pPropertyBytes), typeof(TProperty));
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         ///     Get the value of a named property from a BCrypt object
         /// </summary>
         [SecurityCritical]
@@ -497,7 +608,7 @@ namespace Security.Cryptography
             ErrorCode error = propertyGetter(bcryptObject, property, null, 0, ref propertySize, 0);
             if (error != ErrorCode.Success && error != ErrorCode.BufferToSmall)
             {
-                throw new CryptographicException((int)error);
+                throw new CryptographicException(Win32Native.GetNTStatusMessage((int)error));
             }
 
             // Get the property value
@@ -510,7 +621,7 @@ namespace Security.Cryptography
                                    0);
             if (error != ErrorCode.Success)
             {
-                throw new CryptographicException((int)error);
+                throw new CryptographicException(Win32Native.GetNTStatusMessage((int)error));
             }
 
             return propertyValue;
@@ -530,7 +641,7 @@ namespace Security.Cryptography
 
             if (error != ErrorCode.Success)
             {
-                throw new CryptographicException((int)error);
+                throw new CryptographicException(Win32Native.GetNTStatusMessage((int)error));
             }
         }
 
@@ -590,7 +701,7 @@ namespace Security.Cryptography
                                                                       0);
                 if (error != ErrorCode.Success)
                 {
-                    throw new CryptographicException((int)error);
+                    throw new CryptographicException(Win32Native.GetNTStatusMessage((int)error));
                 }
 
                 // Give the key ownership of the key data buffer
@@ -610,6 +721,18 @@ namespace Security.Cryptography
                     }
                 }
             }
+        }
+
+        /// <summary>
+        ///     Initialize a BCRYPT_AUTHENTICATED_CIPHER_MODE_INFO structure (in place of the
+        ///     BCRYPT_INIT_AUTH_MODE_INFO macro)
+        /// </summary>
+        [SecurityCritical]
+        [SecurityTreatAsSafe]
+        internal static void InitializeAuthnenticatedCipherModeInfo(ref BCRYPT_AUTHENTICATED_CIPHER_MODE_INFO authInfo)
+        {
+            authInfo.cbSize = Marshal.SizeOf(typeof(BCRYPT_AUTHENTICATED_CIPHER_MODE_INFO));
+            authInfo.dwInfoVersion = 1; // BCRYPT_INIT_AUTH_MODE_INFO_VERSION
         }
 
         /// <summary>
@@ -679,7 +802,7 @@ namespace Security.Cryptography
                                                                               options);
             if (error != ErrorCode.Success)
             {
-                throw new CryptographicException((int)error);
+                throw new CryptographicException(Win32Native.GetNTStatusMessage((int)error));
             }
 
             return algorithmHandle;
@@ -745,7 +868,7 @@ namespace Security.Cryptography
                                              0);
             if (error != ErrorCode.Success)
             {
-                throw new CryptographicException((int)error);
+                throw new CryptographicException(Win32Native.GetNTStatusMessage((int)error));
             }
         }
 
@@ -775,7 +898,48 @@ namespace Security.Cryptography
                                                                 0);
             if (error != ErrorCode.Success)
             {
-                throw new CryptographicException((int)error);
+                throw new CryptographicException(Win32Native.GetNTStatusMessage((int)error));
+            }
+
+            // If we didn't use the whole output array, trim down to the portion that was used
+            if (outputSize != output.Length)
+            {
+                byte[] trimmedOutput = new byte[outputSize];
+                Buffer.BlockCopy(output, 0, trimmedOutput, 0, trimmedOutput.Length);
+                output = trimmedOutput;
+            }
+
+            return output;
+        }
+
+        /// <summary>
+        ///     Decrypt some blocks of data using authentication info
+        /// </summary>
+        [SecurityCritical]
+        internal static byte[] SymmetricDecrypt(SafeBCryptKeyHandle key,
+                                                byte[] input,
+                                                byte[] chainData,
+                                                ref BCRYPT_AUTHENTICATED_CIPHER_MODE_INFO authenticationInfo)
+        {
+            Debug.Assert(key != null, "key != null");
+            Debug.Assert(!key.IsClosed && !key.IsInvalid, "!key.IsClosed && !key.IsInvalid");
+
+            // Do the decryption
+            byte[] output = new byte[input != null ? input.Length : 0];
+            int outputSize = 0;
+            ErrorCode error = UnsafeNativeMethods.BCryptDecrypt(key,
+                                                                input,
+                                                                input != null ? input.Length : 0,
+                                                                ref authenticationInfo,
+                                                                chainData,
+                                                                chainData != null ? chainData.Length : 0,
+                                                                output,
+                                                                output.Length,
+                                                                out outputSize,
+                                                                0);
+            if (error != ErrorCode.Success)
+            {
+                throw new CryptographicException(Win32Native.GetNTStatusMessage((int)error));
             }
 
             // If we didn't use the whole output array, trim down to the portion that was used
@@ -805,7 +969,7 @@ namespace Security.Cryptography
             int outputSize = 0;
             ErrorCode error = UnsafeNativeMethods.BCryptEncrypt(key,
                                                                 input,
-                                                                input.Length,
+                                                                input != null ? input.Length : 0,
                                                                 IntPtr.Zero,
                                                                 iv,
                                                                 iv != null ? iv.Length : 0,
@@ -815,7 +979,49 @@ namespace Security.Cryptography
                                                                 0);
             if (error != ErrorCode.Success)
             {
-                throw new CryptographicException((int)error);
+                throw new CryptographicException(Win32Native.GetNTStatusMessage((int)error));
+            }
+
+            // If we didn't use the whole output array, trim down to the portion that was used
+            if (outputSize != output.Length)
+            {
+                byte[] trimmedOutput = new byte[outputSize];
+                Buffer.BlockCopy(output, 0, trimmedOutput, 0, trimmedOutput.Length);
+                output = trimmedOutput;
+            }
+
+            return output;
+        }
+
+        /// <summary>
+        ///     Encrypt some blocks of data using authentication information
+        /// </summary>
+        [SecurityCritical]
+        [SecurityTreatAsSafe]
+        internal static byte[] SymmetricEncrypt(SafeBCryptKeyHandle key,
+                                                byte[] input,
+                                                byte[] chainData,
+                                                ref BCRYPT_AUTHENTICATED_CIPHER_MODE_INFO authenticationInfo)
+        {
+            Debug.Assert(key != null, "key != null");
+            Debug.Assert(!key.IsClosed && !key.IsInvalid, "!key.IsClosed && !key.IsInvalid");
+
+            // Do the encryption
+            byte[] output = new byte[input != null ? input.Length : 0];
+            int outputSize = 0;
+            ErrorCode error = UnsafeNativeMethods.BCryptEncrypt(key,
+                                                                input,
+                                                                input != null ? input.Length : 0,
+                                                                ref authenticationInfo,
+                                                                chainData,
+                                                                chainData != null ? chainData.Length : 0,
+                                                                output,
+                                                                output.Length,
+                                                                out outputSize,
+                                                                0);
+            if (error != ErrorCode.Success)
+            {
+                throw new CryptographicException(Win32Native.GetNTStatusMessage((int)error));
             }
 
             // If we didn't use the whole output array, trim down to the portion that was used

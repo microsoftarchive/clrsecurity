@@ -24,6 +24,15 @@ namespace Security.Cryptography.Test
         }
 
         [TestMethod]
+        public void RNGCngPropertiesTest()
+        {
+            using (RNGCng rng = new RNGCng())
+            {
+                Assert.AreEqual(CngProvider2.MicrosoftPrimitiveAlgorithmProvider, rng.Provider);
+            }
+        }
+
+        [TestMethod]
         public void RNGCngLargeTest()
         {
             using (RNGCng rng = new RNGCng())

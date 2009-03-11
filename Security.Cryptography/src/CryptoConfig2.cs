@@ -59,6 +59,7 @@ namespace Security.Cryptography
                 //
 
                 AddAlgorithmToMap(map, typeof(AesCng));
+                AddAlgorithmToMap(map, typeof(AuthenticatedAesCng), "AuthenticatedAes", "AuthenticatedSymmetricAlgorithm");
                 AddAlgorithmToMap(map, typeof(HMACSHA256Cng));
                 AddAlgorithmToMap(map, typeof(HMACSHA384Cng));
                 AddAlgorithmToMap(map, typeof(HMACSHA512Cng));

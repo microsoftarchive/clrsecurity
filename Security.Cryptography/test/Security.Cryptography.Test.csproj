@@ -41,7 +41,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AesCngTests.cs" />
+    <Compile Include="AuthenticatedAesTests.cs" />
+    <Compile Include="AuthenticatedAesCngCcmTestVectorTests.cs" />
+    <Compile Include="AuthenticatedAesCngGcmTestVectorTests.cs" />
+    <Compile Include="AuthenticatedAesCngTests.cs" />
+    <Compile Include="AuthenticatedSymmetricAlgorithmTests.cs" />
+    <Compile Include="CngAlgorithm2Tests.cs" />
+    <Compile Include="CngChainingModeTests.cs" />
     <Compile Include="CngKeyTests.cs" />
+    <Compile Include="CngProvider2Tests.cs" />
     <Compile Include="CryptoConfig2Tests.cs" />
     <Compile Include="RSAPKCS1SHA256SignatureDescriptionTests.cs" />
     <Compile Include="TripleDESCngTests.cs" />

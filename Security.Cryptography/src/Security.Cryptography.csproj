@@ -46,6 +46,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AesCng.cs" />
+    <Compile Include="AuthenticatedAes.cs" />
+    <Compile Include="AuthenticatedAesCng.cs" />
+    <Compile Include="AuthenticatedSymmetricAlgorithm.cs" />
+    <Compile Include="BCryptAuthenticatedSymmetricAlgorithm.cs" />
+    <Compile Include="BCryptAuthenticatedSymmetricCryptoTransform.cs" />
     <Compile Include="BCryptHMAC.cs" />
     <Compile Include="BCryptNative.cs" />
     <Compile Include="BCryptSymmetricAlgorithm.cs" />
@@ -53,6 +58,7 @@
     <Compile Include="BlockPaddingMethod.cs" />
     <Compile Include="CapiNative.cs" />
     <Compile Include="CngAlgorithm2.cs" />
+    <Compile Include="CngChainingMode.cs" />
     <Compile Include="CngKeyExtensionMethods.cs" />
     <Compile Include="CngProvider2.cs" />
     <Compile Include="CngProviderCollection.cs" />
@@ -62,6 +68,11 @@
     <Compile Include="HMACSHA256Cng.cs" />
     <Compile Include="HMACSHA384Cng.cs" />
     <Compile Include="HMACSHA512Cng.cs" />
+    <Compile Include="IAuthenticatedCryptoTransform.cs" />
+    <Compile Include="ICngAlgorithm.cs" />
+    <Compile Include="ICngAsymmetricAlgorithm.cs" />
+    <Compile Include="ICngSymmetricAlgorithm.cs" />
+    <Compile Include="ICryptoTransform2.cs" />
     <Compile Include="NCryptNative.cs" />
     <Compile Include="Oid2.cs" />
     <Compile Include="RNGCng.cs" />

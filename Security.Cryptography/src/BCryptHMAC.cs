@@ -11,10 +11,11 @@ namespace Security.Cryptography
     ///     Generic implementation of HMAC which is implemented by the BCrypt layer of Cng. Concrete HMAC
     ///     classes should contain an instance of the BCryptHMAC type and delegate their work to that object.
     /// </summary>
-    internal sealed class BCryptHMAC : HMAC
+    internal sealed class BCryptHMAC : HMAC, ICngAlgorithm
     {
         private SafeBCryptAlgorithmHandle m_algorithm;
         private SafeBCryptHashHandle m_hash;
+        private CngProvider m_implementation;
 
         [SecurityCritical]
         [SecurityTreatAsSafe]
@@ -32,6 +33,8 @@ namespace Security.Cryptography
 
             BlockSizeValue = blockSize;
             HashName = hashName;
+
+            m_implementation = algorithmProvider;
 
             m_algorithm = BCryptNative.OpenAlgorithm(algorithm.Algorithm,
                                                      algorithmProvider.Provider,
@@ -64,6 +67,11 @@ namespace Security.Cryptography
                 // Changing the key value requires us to create a new hash handle, so we need to reset
                 Initialize();
             }
+        }
+
+        public CngProvider Provider
+        {
+            get { return m_implementation; }
         }
 
         [SecurityCritical]

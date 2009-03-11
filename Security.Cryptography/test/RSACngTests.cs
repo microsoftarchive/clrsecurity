@@ -15,6 +15,26 @@ namespace Security.Cryptography.Test
     public sealed class RSACngTests
     {
         /// <summary>
+        ///     Test to ensure the default RSACng properties are as we expect them to be
+        /// </summary>
+        [TestMethod]
+        public void RSACngPropertiesTest()
+        {
+            using (RSACng rsa = new RSACng())
+            {
+                Assert.AreEqual(CngAlgorithm.Sha256, rsa.EncryptionHashAlgorithm);
+                Assert.AreEqual(AsymmetricPaddingMode.Oaep, rsa.EncryptionPaddingMode);
+                Assert.AreEqual("RSA-PKCS1-KeyEx", rsa.KeyExchangeAlgorithm);
+                Assert.AreEqual(2048, rsa.KeySize);
+                Assert.AreEqual(CngProvider.MicrosoftSoftwareKeyStorageProvider, rsa.Provider);
+                Assert.AreEqual("http://www.w3.org/2000/09/xmldsig#rsa-sha1", rsa.SignatureAlgorithm);
+                Assert.AreEqual(CngAlgorithm.Sha256, rsa.SignatureHashAlgorithm);
+                Assert.AreEqual(AsymmetricPaddingMode.Pkcs1, rsa.SignaturePaddingMode);
+                Assert.AreEqual(20, rsa.SignatureSaltBytes);
+            }
+        }
+
+        /// <summary>
         ///     Test that we can round trip a signature using PKCS #1 padding
         /// </summary>
         [TestMethod]

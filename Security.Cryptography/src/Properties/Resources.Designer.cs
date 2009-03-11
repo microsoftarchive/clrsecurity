@@ -61,6 +61,15 @@ namespace Security.Cryptography.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This transform has already transformed its final block and can no longer transform additional data..
+        /// </summary>
+        internal static string AlreadyTransformedFinalBlock {
+            get {
+                return ResourceManager.GetString("AlreadyTransformedFinalBlock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot decrypt a partial block..
         /// </summary>
         internal static string CannotDecryptPartialBlock {
@@ -84,6 +93,15 @@ namespace Security.Cryptography.Properties {
         internal static string EmptyCryptoConfigAlias {
             get {
                 return ResourceManager.GetString("EmptyCryptoConfigAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CNG chaining modes cannot have empty names..
+        /// </summary>
+        internal static string InvalidChainingModeName {
+            get {
+                return ResourceManager.GetString("InvalidChainingModeName", resourceCulture);
             }
         }
         
@@ -124,6 +142,15 @@ namespace Security.Cryptography.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified tag is not a valid size for this implementation..
+        /// </summary>
+        internal static string InvalidTagSize {
+            get {
+                return ResourceManager.GetString("InvalidTagSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified key must be an RSA key.
         /// </summary>
         internal static string KeyMustBeRsa {
@@ -138,6 +165,24 @@ namespace Security.Cryptography.Properties {
         internal static string MissingIV {
             get {
                 return ResourceManager.GetString("MissingIV", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Authentication tags are only available after the final block has been transformed..
+        /// </summary>
+        internal static string TagIsOnlyGeneratedAfterFinalBlock {
+            get {
+                return ResourceManager.GetString("TagIsOnlyGeneratedAfterFinalBlock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Authentication tags are only generated during encryption operations, and cannot be retrieved from a decryption transform..
+        /// </summary>
+        internal static string TagIsOnlyGeneratedDuringEncryption {
+            get {
+                return ResourceManager.GetString("TagIsOnlyGeneratedDuringEncryption", resourceCulture);
             }
         }
         
