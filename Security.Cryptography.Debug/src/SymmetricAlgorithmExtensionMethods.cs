@@ -2,11 +2,25 @@
 
 using System;
 using System.Security.Cryptography;
+using Security.Cryptography.Properties;
 
 namespace Security.Cryptography
 {
     /// <summary>
-    ///     Extension methods for the SymmetricAlgorithm class which enable setting up logging and verification
+    ///     Extension methods for the SymmetricAlgorithm class which enable setting up logging and
+    ///     verification.
+    ///     
+    ///     These methods know how to wire up verifiers for both SymmetricAlgorithms as well as subtypes of
+    ///     SymmetricAlgorithm that require their own special logging (for instance
+    ///     AuthenticatedSymmetricAlgorithm).  The reason that we need to put that logic in the central
+    ///     SymmetricAlgorithm extension methods rather than in the specific subtype extension methods is
+    ///     that we want to be able to hook up the correct type of logging regardless of the static type of
+    ///     the object reference being logged.
+    ///     
+    ///     For instance, if code creates an AuthenticatedSymmetricAlgorithm and stores it in a
+    ///     SymmetricAlgorithm variable, that's perfectly legal from a object model standpoint.  However, if
+    ///     that code then attempts to hook up a logger / verifier to the algorithm, it won't be keeping
+    ///     track of any extra authenticated state.
     ///     
     ///     See code:System.Security.Cryptography.SymmetricAlgorithmLogger#SymmetricAlgorithmDiagnostics
     /// </summary>
@@ -30,9 +44,23 @@ namespace Security.Cryptography
             if (options == null)
                 throw new ArgumentNullException("options");
 
-            return new SymmetricAlgorithmLogger(loggedAlgorithm,
-                                                options.CheckThreadSafety ? options.LockCheckCallback : null,
-                                                options.CheckThreadSafety ? options.LockCheckParameter : null);
+#if !FXONLY_BUILD
+            AuthenticatedSymmetricAlgorithm authenticatedLoggedAlgorithm =
+                loggedAlgorithm as AuthenticatedSymmetricAlgorithm;
+
+            if (authenticatedLoggedAlgorithm != null)
+            {
+                return new AuthenticatedSymmetricAlgorithmLogger(authenticatedLoggedAlgorithm,
+                                                                 options.CheckThreadSafety ? options.LockCheckCallback : null,
+                                                                 options.CheckThreadSafety ? options.LockCheckParameter : null);
+            }
+            else
+#endif // !FXONLY_BUILD
+            {
+                return new SymmetricAlgorithmLogger(loggedAlgorithm,
+                                                    options.CheckThreadSafety ? options.LockCheckCallback : null,
+                                                    options.CheckThreadSafety ? options.LockCheckParameter : null);
+            }
         }
 
         /// <summary>
@@ -63,10 +91,33 @@ namespace Security.Cryptography
             if (options == null)
                 throw new ArgumentNullException("options");
 
-            return new SymmetricAlgorithmVerifier(loggedAlgorithm,
-                                                  encryptionState,
-                                                  options.CheckThreadSafety ? options.LockCheckCallback : null,
-                                                  options.CheckThreadSafety ? options.LockCheckParameter : null);
+#if !FXONLY_BUILD
+            AuthenticatedSymmetricAlgorithm authenticatedLoggedAlgorithm =
+                loggedAlgorithm as AuthenticatedSymmetricAlgorithm;
+
+            if (authenticatedLoggedAlgorithm != null)
+            {
+                AuthenticatedSymmetricEncryptionState authenticatedEncryptionState =
+                    encryptionState as AuthenticatedSymmetricEncryptionState;
+
+                if (authenticatedEncryptionState == null)
+                {
+                    throw new ArgumentException(Resources.NeedAuthenticatedEncryptionState, "encryptionState");
+                }
+
+                return new AuthenticatedSymmetricAlgorithmVerifier(authenticatedLoggedAlgorithm,
+                                                                   authenticatedEncryptionState,
+                                                                   options.CheckThreadSafety ? options.LockCheckCallback : null,
+                                                                   options.CheckThreadSafety ? options.LockCheckParameter : null);
+            }
+            else
+#endif // !FXONLY_BUILD
+            {
+                return new SymmetricAlgorithmVerifier(loggedAlgorithm,
+                                                      encryptionState,
+                                                      options.CheckThreadSafety ? options.LockCheckCallback : null,
+                                                      options.CheckThreadSafety ? options.LockCheckParameter : null);
+            }
         }
 
         /// <summary>

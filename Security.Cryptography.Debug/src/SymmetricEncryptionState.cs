@@ -14,8 +14,11 @@ namespace Security.Cryptography
     ///     See code:System.Security.Cryptography.SymmetricAlgorithmLogger#SymmetricAlgorithmDiagnostics
     /// </summary>
     [Serializable]
-    public sealed class SymmetricEncryptionState : IDisposable
+    public class SymmetricEncryptionState : IDisposable
     {
+        private Type m_baseAlgorithmType;
+        private bool m_compareCipherModes;
+
         private int m_blockSize;
         private CipherMode m_cipherMode;
         private int m_feedbackSize;
@@ -30,19 +33,33 @@ namespace Security.Cryptography
         internal SymmetricEncryptionState(byte[] key,
                                           byte[] iv,
                                           SymmetricAlgorithm algorithm)
+            : this(key, iv, algorithm, typeof(SymmetricAlgorithm), true)
+        {
+        }
+
+        internal SymmetricEncryptionState(byte[] key,
+                                          byte[] iv,
+                                          SymmetricAlgorithm algorithm,
+                                          Type baseAlgorithmType,
+                                          bool compareCipherModes)
         {
             if (key == null)
                 throw new ArgumentNullException("key");
             if (iv == null)
                 throw new ArgumentNullException("iv");
             Debug.Assert(algorithm != null, "algorithm != null");
+            Debug.Assert(baseAlgorithmType != null, "baseAlgorithmType != null");
+            Debug.Assert(typeof(SymmetricAlgorithm).IsAssignableFrom(baseAlgorithmType), "typeof(SymmetricAlgorithm).IsAssignableFrom(baseAlgorithmType)");
+
+            m_baseAlgorithmType = baseAlgorithmType;
+            m_compareCipherModes = compareCipherModes;
 
             m_algorithm = GetAlgorithmType(algorithm.GetType());
             m_blockSize = algorithm.BlockSize;
             m_cipherMode = algorithm.Mode;
             m_paddingMode = algorithm.Padding;
 
-            if (CipherModeUsesFeedback(algorithm.Mode))
+            if (m_compareCipherModes && CipherModeUsesFeedback(algorithm.Mode))
             {
                 m_feedbackSize = algorithm.FeedbackSize;
             }
@@ -54,11 +71,52 @@ namespace Security.Cryptography
             Array.Copy(key, m_key, m_key.Length);
         }
 
+        /// <summary>
+        ///     Perform a deep copy of another symmetric encryption state
+        /// </summary>
+        protected SymmetricEncryptionState(SymmetricEncryptionState other)
+        {
+            if (other == null)
+                throw new ArgumentNullException("other");
+
+            m_baseAlgorithmType = other.m_baseAlgorithmType;
+            m_compareCipherModes = other.m_compareCipherModes;
+
+            m_blockSize = other.m_blockSize;
+            m_cipherMode = other.m_cipherMode;
+            m_feedbackSize = other.m_feedbackSize;
+            m_paddingMode = other.m_paddingMode;
+            m_algorithm = other.m_algorithm;
+
+            m_iv = new byte[other.m_iv.Length];
+            Array.Copy(other.m_iv, m_iv, m_iv.Length);
+
+            m_key = new byte[other.m_key.Length];
+            Array.Copy(other.m_key, m_key, m_key.Length);
+        }
+
         public void Dispose()
         {
-            if (m_key != null)
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        ///     Make a deep copy of the current encryption state
+        /// </summary>
+        public virtual SymmetricEncryptionState Clone()
+        {
+            return new SymmetricEncryptionState(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
             {
-                Array.Clear(m_key, 0, m_key.Length);
+                if (m_key != null)
+                {
+                    Array.Clear(m_key, 0, m_key.Length);
+                }
             }
         }
 
@@ -81,7 +139,7 @@ namespace Security.Cryptography
         ///     Verify that the input decryption state matches our encryption state, throwing an error if 
         ///     they do not.
         /// </summary>
-        internal void VerifyDecryptionState(SymmetricEncryptionState decryptionState)
+        internal virtual void VerifyDecryptionState(SymmetricEncryptionState decryptionState)
         {
             Debug.Assert(decryptionState != null, "decryptionState != null");
 
@@ -102,7 +160,7 @@ namespace Security.Cryptography
             }
 
             // Check the ciper modes
-            if (m_cipherMode != decryptionState.m_cipherMode)
+            if (m_compareCipherModes && m_cipherMode != decryptionState.m_cipherMode)
             {
                 ThrowDiagnosticException(Properties.Resources.CipherModeMismatch,
                                          m_cipherMode,
@@ -157,19 +215,19 @@ namespace Security.Cryptography
         /// <summary>
         ///     Compare two byte arrays for equality
         /// </summary>
-        private static bool CompareBytes(byte[] lhs, byte[] rhs)
+        protected static bool CompareBytes(byte[] left, byte[] right)
         {
-            Debug.Assert(lhs != null, "lhs != null");
-            Debug.Assert(rhs != null, "rhs != null");
+            Debug.Assert(left != null, "lhs != null");
+            Debug.Assert(right != null, "rhs != null");
 
-            if (lhs.Length != rhs.Length)
+            if (left.Length != right.Length)
             {
                 return false;
             }
 
-            for (uint i = 0; i < lhs.Length; ++i)
+            for (uint i = 0; i < left.Length; ++i)
             {
-                if (lhs[i] != rhs[i])
+                if (left[i] != right[i])
                 {
                     return false;
                 }
@@ -181,12 +239,12 @@ namespace Security.Cryptography
         /// <summary>
         ///     Given a symmetric algortihm implementation, find the abstract algorithm type it implements
         /// </summary>
-        private static Type GetAlgorithmType(Type implementationType)
+        private Type GetAlgorithmType(Type implementationType)
         {
             Debug.Assert(implementationType != null, "implementationType != null");
 
             Type currentType = implementationType;
-            while (currentType.BaseType != typeof(SymmetricAlgorithm))
+            while (currentType.BaseType != m_baseAlgorithmType)
             {
                 Debug.Assert(currentType != typeof(object), "Walked too far up the object hierarchy");
                 currentType = currentType.BaseType;
@@ -198,12 +256,15 @@ namespace Security.Cryptography
         /// <summary>
         ///     Convert a byte array into a hex string
         /// </summary>
-        private static string HexString(byte[] bytes)
+        protected static string HexString(byte[] value)
         {
-            Debug.Assert(bytes != null, "bytes != null");
+            if (value == null)
+            {
+                return "(null)";
+            }
 
-            StringBuilder hexBuilder = new StringBuilder(bytes.Length * 2);
-            foreach (byte b in bytes)
+            StringBuilder hexBuilder = new StringBuilder(value.Length * 2);
+            foreach (byte b in value)
             {
                 hexBuilder.Append(b.ToString("x2", CultureInfo.InvariantCulture));
             }
@@ -214,7 +275,7 @@ namespace Security.Cryptography
         /// <summary>
         ///     Throw a diagnostic error for the algorithm
         /// </summary>
-        private static void ThrowDiagnosticException(string message, params object[] data)
+        protected static void ThrowDiagnosticException(string message, params object[] data)
         {
             Debug.Assert(message != null, "message != null");
 

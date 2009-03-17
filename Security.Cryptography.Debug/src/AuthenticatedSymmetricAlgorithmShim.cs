@@ -7,15 +7,16 @@ using System.Security.Cryptography;
 
 namespace Security.Cryptography
 {
+#if !FXONLY_BUILD
     /// <summary>
-    ///     Shim class for symmetric algorithms.  This class simply wraps an existing symmetric algorithm and
-    ///     forwards all crypto operations on to that class.  It provides hooks for capturing the creation of
-    ///     an encryptor or decryptor, which is used by the symmetric algorithm logging and verification
-    ///     facility.
+    ///     Shim class for authenticated symmetric algorithms.  This class simply wraps an existing
+    ///     authenticated symmetric algorithm and forwards all crypto operations on to that class.  It
+    ///     provides hooks for capturing the creation of an encryptor or decryptor, which is used by the
+    ///     authenticated symmetric algorithm logging and verification facility.
     /// </summary>
-    internal abstract class SymmetricAlgorithmShim : SymmetricAlgorithm
+    internal abstract class AuthenticatedSymmetricAlgorithmShim : AuthenticatedSymmetricAlgorithm
     {
-        private SymmetricAlgorithm m_wrappedAlgorithm;
+        private AuthenticatedSymmetricAlgorithm m_wrappedAlgorithm;
 
         //
         // Fields used only when we're checking for thread-safe access to the cryptography object
@@ -24,9 +25,9 @@ namespace Security.Cryptography
         private Predicate<CryptographyLockContext<SymmetricAlgorithm>> m_lockCheckCallback;
         private CryptographyLockContext<SymmetricAlgorithm> m_lockCheckContext;
 
-        internal SymmetricAlgorithmShim(SymmetricAlgorithm wrappedAlgorithm,
-                                        Predicate<CryptographyLockContext<SymmetricAlgorithm>> lockCheckCallback,
-                                        object lockCheckParameter)
+        internal AuthenticatedSymmetricAlgorithmShim(AuthenticatedSymmetricAlgorithm wrappedAlgorithm,
+                                                     Predicate<CryptographyLockContext<SymmetricAlgorithm>> lockCheckCallback,
+                                                     object lockCheckParameter)
         {
             Debug.Assert(wrappedAlgorithm != null, "wrappedAlgorithm != null");
             m_wrappedAlgorithm = wrappedAlgorithm;
@@ -39,9 +40,9 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Symmetric algorithm that we're acting as a shim for
+        ///     Authenticated symmetric algorithm that we're acting as a shim for
         /// </summary>
-        protected SymmetricAlgorithm WrappedAlgorithm
+        protected AuthenticatedSymmetricAlgorithm WrappedAlgorithm
         {
             get { return m_wrappedAlgorithm; }
         }
@@ -68,7 +69,6 @@ namespace Security.Cryptography
         /// <summary>
         ///     Clean up any resources that we hold onto
         /// </summary>
-        /// <param name="disposing"></param>
         protected override void Dispose(bool disposing)
         {
             try
@@ -103,10 +103,39 @@ namespace Security.Cryptography
         // and verify them as appropriate.
         //
 
+        public override IAuthenticatedCryptoTransform CreateAuthenticatedEncryptor()
+        {
+            CheckThreadAccess();
+            OnEncryptorCreated(Key, IV, AuthenticatedData);
+
+            return new AuthenticatedCryptoTransformShim(m_wrappedAlgorithm.CreateAuthenticatedEncryptor(),
+                                                        CheckThreadAccess);
+        }
+
+        public override IAuthenticatedCryptoTransform CreateAuthenticatedEncryptor(byte[] rgbKey, byte[] rgbIV)
+        {
+            CheckThreadAccess();
+            OnEncryptorCreated(rgbKey, rgbIV, AuthenticatedData);
+
+            return new AuthenticatedCryptoTransformShim(m_wrappedAlgorithm.CreateAuthenticatedEncryptor(rgbKey, rgbIV),
+                                                        CheckThreadAccess);
+        }
+
+        public override IAuthenticatedCryptoTransform CreateAuthenticatedEncryptor(byte[] rgbKey,
+                                                                                   byte[] rgbIV,
+                                                                                   byte[] rgbAuthenticatedData)
+        {
+            CheckThreadAccess();
+            OnEncryptorCreated(rgbKey, rgbIV, rgbAuthenticatedData);
+
+            return new AuthenticatedCryptoTransformShim(m_wrappedAlgorithm.CreateAuthenticatedEncryptor(rgbKey, rgbIV, rgbAuthenticatedData),
+                                                        CheckThreadAccess);
+        }
+
         public override ICryptoTransform CreateDecryptor()
         {
             CheckThreadAccess();
-            OnDecryptorCreated(Key, IV);
+            OnDecryptorCreated(Key, IV, AuthenticatedData, Tag);
 
             return new CryptoTransformShim(m_wrappedAlgorithm.CreateDecryptor(),
                                            CheckThreadAccess);
@@ -115,16 +144,28 @@ namespace Security.Cryptography
         public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[] rgbIV)
         {
             CheckThreadAccess();
-            OnDecryptorCreated(rgbKey, rgbIV);
+            OnDecryptorCreated(rgbKey, rgbIV, AuthenticatedData, Tag);
 
             return new CryptoTransformShim(m_wrappedAlgorithm.CreateDecryptor(rgbKey, rgbIV),
+                                           CheckThreadAccess);
+        }
+
+        public override ICryptoTransform CreateDecryptor(byte[] rgbKey,
+                                                         byte[] rgbIV,
+                                                         byte[] rgbAuthenticatedData,
+                                                         byte[] rgbTag)
+        {
+            CheckThreadAccess();
+            OnDecryptorCreated(rgbKey, rgbIV, rgbAuthenticatedData, rgbTag);
+
+            return new CryptoTransformShim(m_wrappedAlgorithm.CreateDecryptor(rgbKey, rgbIV, rgbAuthenticatedData, rgbTag),
                                            CheckThreadAccess);
         }
 
         public override ICryptoTransform CreateEncryptor()
         {
             CheckThreadAccess();
-            OnEncryptorCreated(Key, IV);
+            OnEncryptorCreated(Key, IV, AuthenticatedData);
 
             return new CryptoTransformShim(m_wrappedAlgorithm.CreateEncryptor(),
                                            CheckThreadAccess);
@@ -133,7 +174,7 @@ namespace Security.Cryptography
         public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[] rgbIV)
         {
             CheckThreadAccess();
-            OnEncryptorCreated(rgbKey, rgbIV);
+            OnEncryptorCreated(rgbKey, rgbIV, AuthenticatedData);
 
             return new CryptoTransformShim(m_wrappedAlgorithm.CreateEncryptor(rgbKey, rgbIV),
                                            CheckThreadAccess);
@@ -143,11 +184,11 @@ namespace Security.Cryptography
         // virtual hooks for the encryption logging and decryption verification types to listen to
         //
 
-        protected virtual void OnDecryptorCreated(byte[] key, byte[] iv)
+        protected virtual void OnDecryptorCreated(byte[] key, byte[] iv, byte[] authenticatedData, byte[] tag)
         {
         }
 
-        protected virtual void OnEncryptorCreated(byte[] key, byte[] iv)
+        protected virtual void OnEncryptorCreated(byte[] key, byte[] iv, byte[] authenticatedData)
         {
         }
 
@@ -155,6 +196,12 @@ namespace Security.Cryptography
         // Shim methods and properties - these just ensure that our logging algorithm object looks exactly
         // like the algorithm it's wrapping.
         //
+
+        public override byte[] AuthenticatedData
+        {
+            get { CheckThreadAccess(); return m_wrappedAlgorithm.AuthenticatedData; }
+            set { CheckThreadAccess(); m_wrappedAlgorithm.AuthenticatedData = value; }
+        }
 
         public override int BlockSize
         {
@@ -196,6 +243,11 @@ namespace Security.Cryptography
             get { CheckThreadAccess(); return m_wrappedAlgorithm.LegalBlockSizes; }
         }
 
+        public override KeySizes[] LegalTagSizes
+        {
+            get { CheckThreadAccess(); return m_wrappedAlgorithm.LegalTagSizes; }
+        }
+
         public override CipherMode Mode
         {
             get { CheckThreadAccess(); return m_wrappedAlgorithm.Mode; }
@@ -206,6 +258,18 @@ namespace Security.Cryptography
         {
             get { CheckThreadAccess(); return m_wrappedAlgorithm.Padding; }
             set { CheckThreadAccess(); m_wrappedAlgorithm.Padding = value; }
+        }
+
+        public override byte[] Tag
+        {
+            get { CheckThreadAccess(); return m_wrappedAlgorithm.Tag; }
+            set { CheckThreadAccess(); m_wrappedAlgorithm.Tag = value; }
+        }
+
+        public override int TagSize
+        {
+            get { CheckThreadAccess(); return m_wrappedAlgorithm.TagSize; }
+            set { CheckThreadAccess(); m_wrappedAlgorithm.TagSize = value; }
         }
 
         public override void GenerateIV()
@@ -220,4 +284,5 @@ namespace Security.Cryptography
             m_wrappedAlgorithm.GenerateKey();
         }
     }
+#endif // !FXONLY_BUILD
 }

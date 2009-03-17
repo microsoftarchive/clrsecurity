@@ -11,12 +11,15 @@ namespace Security.Cryptography
     ///     
     ///     See code:System.Security.Cryptography.SymmetricAlgorithmShim
     /// </summary>
-    internal sealed class ShimCryptoTransform : ICryptoTransform
+    internal class CryptoTransformShim : ICryptoTransform
+#if !FXONLY_BUILD
+        , ICryptoTransform2
+#endif // !FXONLY_BUILD
     {
         private ICryptoTransform m_wrappedTransform;
         private Action m_lockCheck;
 
-        internal ShimCryptoTransform(ICryptoTransform wrappedTransform, Action lockCheck)
+        internal CryptoTransformShim(ICryptoTransform wrappedTransform, Action lockCheck)
         {
             if (wrappedTransform == null)
                 throw new ArgumentNullException("wrappedTransform");
@@ -28,7 +31,7 @@ namespace Security.Cryptography
         /// <summary>
         ///     Make sure that the transform is being used in a thread-safe manner
         /// </summary>
-        private void CheckThreadAccess()
+        protected void CheckThreadAccess()
         {
             if (m_lockCheck != null)
             {
@@ -36,9 +39,41 @@ namespace Security.Cryptography
             }
         }
 
+#if !FXONLY_BUILD
+        /// <summary>
+        ///     Provide access to the wrapped transform for derived shims
+        /// </summary>
+        protected ICryptoTransform WrappedTransform
+        {
+            get { return m_wrappedTransform; }
+        }
+#endif // !FXONLY_BUILD
+
         //
         // Shim properties and methods
         //
+
+#if !FXONLY_BUILD
+        public bool CanChainBlocks
+        {
+            get
+            {
+                ICryptoTransform2 wrappedTransform2 = m_wrappedTransform as ICryptoTransform2;
+
+                if (wrappedTransform2 != null)
+                {
+                    return wrappedTransform2.CanChainBlocks;
+                }
+                else
+                {
+                    // Transforms that don't implement ICryptoTransform2 are assumed to be able to chain
+                    // multiple blocks since ICryptoTransform does not provide a way to express that this is
+                    // not possible.
+                    return true;
+                }
+            }
+        }
+#endif // !FXONLY_BUILD
 
         public bool CanReuseTransform
         {
@@ -82,7 +117,16 @@ namespace Security.Cryptography
 
         public void Dispose()
         {
-            m_wrappedTransform.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                m_wrappedTransform.Dispose();
+            }
         }
     }
 }

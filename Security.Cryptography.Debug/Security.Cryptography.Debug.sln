@@ -5,6 +5,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Security.Cryptography.Debug
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{59CC5B33-040C-4CE9-A4AD-735D00B245FD}"
 	ProjectSection(SolutionItems) = preProject
+		AssemblyVersion.cs = AssemblyVersion.cs
 		LocalTestRun.testrunconfig = LocalTestRun.testrunconfig
 		Security.Cryptography.Debug.vsmdi = Security.Cryptography.Debug.vsmdi
 	EndProjectSection
@@ -17,15 +18,20 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Release_FxOnly|Any CPU = Release_FxOnly|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{52621989-DA66-4B6C-AEA1-90CA021C6CF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{52621989-DA66-4B6C-AEA1-90CA021C6CF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52621989-DA66-4B6C-AEA1-90CA021C6CF4}.Release_FxOnly|Any CPU.ActiveCfg = Release_FxOnly|Any CPU
+		{52621989-DA66-4B6C-AEA1-90CA021C6CF4}.Release_FxOnly|Any CPU.Build.0 = Release_FxOnly|Any CPU
 		{52621989-DA66-4B6C-AEA1-90CA021C6CF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52621989-DA66-4B6C-AEA1-90CA021C6CF4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{24CC3AA5-4AF9-4D61-805B-C096B315533E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{24CC3AA5-4AF9-4D61-805B-C096B315533E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24CC3AA5-4AF9-4D61-805B-C096B315533E}.Release_FxOnly|Any CPU.ActiveCfg = Release_FxOnly|Any CPU
+		{24CC3AA5-4AF9-4D61-805B-C096B315533E}.Release_FxOnly|Any CPU.Build.0 = Release_FxOnly|Any CPU
 		{24CC3AA5-4AF9-4D61-805B-C096B315533E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{24CC3AA5-4AF9-4D61-805B-C096B315533E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection

@@ -122,6 +122,16 @@
     Encryption: {0}
     Decryption: {1}</value>
   </data>
+  <data name="AuthenticatedDataMismatch" xml:space="preserve">
+    <value>Authenticated data mismatch.
+    Encryption ({0} bits): {1}
+    Decryption ({2} bits): {3}</value>
+  </data>
+  <data name="AuthenticatedSymmetricAlgorithmStateString" xml:space="preserve">
+    <value>{0}
+  Authenticated data ({1} bits): {2}
+  CNG cipher mode: {3}</value>
+  </data>
   <data name="BlockSizeMismatch" xml:space="preserve">
     <value>Block size mismatch.
     Encryption: {0}
@@ -129,6 +139,11 @@
   </data>
   <data name="CipherModeMismatch" xml:space="preserve">
     <value>Cipher mode mismatch.
+    Encryption: {0}
+    Decryption: {1}</value>
+  </data>
+  <data name="CngChainingModeMismatch" xml:space="preserve">
+    <value>CNG chaining mode mismatch.
     Encryption: {0}
     Decryption: {1}</value>
   </data>
@@ -149,6 +164,9 @@
     <value>Key mismatch.
     Encryption ({0} bits): {1}
     Decryption ({2} bits): {3}</value>
+  </data>
+  <data name="NeedAuthenticatedEncryptionState" xml:space="preserve">
+    <value>Verifying an AuthenticatedSymmetricAlgorithm requires an AuthenticatedSymmetricEncryptionState.</value>
   </data>
   <data name="NoEncryptionStateCaptured" xml:space="preserve">
     <value>No encryption state has been captured yet.</value>
@@ -173,5 +191,8 @@
   </data>
   <data name="ThreadSafetyViolation" xml:space="preserve">
     <value>A cryptographic object was not accessed in a thread safe manner.</value>
+  </data>
+  <data name="Unknown" xml:space="preserve">
+    <value>Unknown</value>
   </data>
 </root>

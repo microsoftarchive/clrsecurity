@@ -94,11 +94,27 @@ namespace Security.Cryptography
             get
             {
                 if (m_lastCapturedEncryptionState == null)
-                {
                     throw new InvalidOperationException(Properties.Resources.NoEncryptionStateCaptured);
-                }
 
-                return m_lastCapturedEncryptionState;
+                return m_lastCapturedEncryptionState.Clone();
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            try
+            {
+                if (disposing)
+                {
+                    if (m_lastCapturedEncryptionState != null)
+                    {
+                        m_lastCapturedEncryptionState.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                base.Dispose(disposing);
             }
         }
 
