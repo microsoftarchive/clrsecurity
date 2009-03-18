@@ -77,13 +77,33 @@ namespace Security.Cryptography
                 if (value == null)
                     throw new ArgumentNullException("value");
 
-                // Don't do a direct check for GCM or CCM since we want to allow expansion to future
-                // authenticated chaining modes.
-                m_chainingMode = value;
+                // Updating the chaining mode requires doing other work, such as figuring out the new set of
+                // legal tag sizes.  If we're just setting to the same value we already were in, then don't
+                // bother changing the value.
+                if (m_chainingMode != value)
+                {
+                    // Don't do a direct check for GCM or CCM since we want to allow expansion to future
+                    // authenticated chaining modes.
+                    m_chainingMode = value;
 
-                // Legal tag sizes vary with chaining mode, so we need to update them when we update the
-                // chaining mode.
-                UpdateLegalTagSizes();
+                    // Legal tag sizes vary with chaining mode, so we need to update them when we update the
+                    // chaining mode.  Preserve the existing tag in case it's still legal in the new mode.
+                    byte[] tag = Tag;
+                    try
+                    {
+                        UpdateLegalTagSizes();
+
+                        // If the old tag is still of a legal tag size, restore it as the new tag now.
+                        if (ValidTagSize(tag.Length * 8))
+                        {
+                            Tag = tag;
+                        }
+                    }
+                    finally
+                    {
+                        Array.Clear(tag, 0, tag.Length);
+                    }
+                }
             }
         }
 
@@ -149,7 +169,8 @@ namespace Security.Cryptography
 
         public override void GenerateIV()
         {
-            IVValue = RNGCng.GenerateKey(TagSize);
+            // Both GCM and CCM work well with 12 byte nonces, so use that by default.
+            IVValue = RNGCng.GenerateKey(12);
         }
 
         public override void GenerateKey()
