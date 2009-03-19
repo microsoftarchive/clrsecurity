@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Security.Cryptography;
+using Security.Cryptography.Xml;
 
 namespace Security.Cryptography.Test
 {
@@ -102,7 +103,13 @@ namespace Security.Cryptography.Test
                 new Mapping { Name = "RSACng", ExpectedType = typeof(RSACng) },
                 new Mapping { Name = "Security.Cryptography.RSACng", ExpectedType = typeof(RSACng) },
                 new Mapping { Name = "TripleDESCng", ExpectedType = typeof(TripleDESCng) },
-                new Mapping { Name = "Security.Cryptography.TripleDESCng", ExpectedType = typeof(TripleDESCng) }
+                new Mapping { Name = "Security.Cryptography.TripleDESCng", ExpectedType = typeof(TripleDESCng) },
+
+                new Mapping { Name = "RSAPKCS1SHA256SignatureDescription", ExpectedType = typeof(RSAPKCS1SHA256SignatureDescription) },
+                new Mapping { Name = "Security.Cryptography.RSAPKCS1SHA256SignatureDescription", ExpectedType = typeof(RSAPKCS1SHA256SignatureDescription) },
+                new Mapping { Name = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256", ExpectedType = typeof(RSAPKCS1SHA256SignatureDescription) },
+                new Mapping { Name = "XmlDsigXPathWithNamespacesTransform", ExpectedType = typeof(XmlDsigXPathWithNamespacesTransform) },
+                new Mapping { Name = "Security.Cryptography.Xml.XmlDsigXPathWithNamespacesTransform", ExpectedType = typeof(XmlDsigXPathWithNamespacesTransform) }
             };
 
             CheckMappings(cryptoConfig2Mappings);

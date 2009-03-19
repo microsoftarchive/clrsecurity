@@ -103,6 +103,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Xml\TransformFactory.cs" />
+    <Compile Include="Xml\XmlDsigNodeList.cs" />
+    <Compile Include="Xml\XmlDsigXPathWithNamespacesTransform.cs" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="CustomDictionary.xml" />

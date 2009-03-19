@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Security.Permissions;
 using System.Threading;
 using Security.Cryptography.Properties;
+using Security.Cryptography.Xml;
 
 namespace Security.Cryptography
 {
@@ -66,6 +67,9 @@ namespace Security.Cryptography
                 AddAlgorithmToMap(map, typeof(RNGCng));
                 AddAlgorithmToMap(map, typeof(RSACng));
                 AddAlgorithmToMap(map, typeof(TripleDESCng));
+
+                AddAlgorithmToMap(map, typeof(RSAPKCS1SHA256SignatureDescription), "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256");
+                AddAlgorithmToMap(map, typeof(XmlDsigXPathWithNamespacesTransform));
 
                 return map;
             }
