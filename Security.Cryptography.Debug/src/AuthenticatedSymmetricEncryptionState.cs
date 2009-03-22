@@ -72,6 +72,24 @@ namespace Security.Cryptography
             return new AuthenticatedSymmetricEncryptionState(this);
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            try
+            {
+                if (disposing)
+                {
+                    if (m_authenticatedData != null)
+                    {
+                        Array.Clear(m_authenticatedData, 0, m_authenticatedData.Length);
+                    }
+                }
+            }
+            finally
+            {
+                base.Dispose(disposing);
+            }
+        }
+
         public override string ToString()
         {
             return String.Format(CultureInfo.CurrentCulture,

@@ -2,9 +2,9 @@
 
 using System.Reflection;
 
-[assembly: AssemblyVersion("1.1.0.0")]
+[assembly: AssemblyVersion("1.2.0.0")]
 #if FXONLY_BUILD
-[assembly: AssemblyFileVersion("1.1.40317.0")]
+[assembly: AssemblyFileVersion("1.2.40321.0")]
 #else // !FXONLY_BUILD
-[assembly: AssemblyFileVersion("1.1.40317.1")]
+[assembly: AssemblyFileVersion("1.2.40321.1")]
 #endif // FXONLY_BUILD
