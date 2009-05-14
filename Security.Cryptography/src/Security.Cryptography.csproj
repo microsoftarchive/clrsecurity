@@ -102,6 +102,7 @@
     <Compile Include="X509Certificates\X509Native.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Xml\EncryptedXmlExtensionMethods.cs" />
     <Compile Include="Xml\TransformFactory.cs" />
     <Compile Include="Xml\XmlDsigNodeList.cs" />
     <Compile Include="Xml\XmlDsigXPathWithNamespacesTransform.cs" />

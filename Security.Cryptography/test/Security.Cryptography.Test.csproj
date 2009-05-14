@@ -68,6 +68,7 @@
     <Compile Include="X509Certificates\X509CertificateCreationParametersTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Xml\EncryptedXmlTests.cs" />
     <Compile Include="Xml\TransformFactoryTests.cs" />
     <Compile Include="Xml\XmlDsigXPathWithNamespacesTransformTests.cs" />
   </ItemGroup>
