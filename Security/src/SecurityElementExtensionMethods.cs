@@ -9,7 +9,10 @@ using System.Xml;
 namespace Security
 {
     /// <summary>
-    ///     Extension methods for the SecurityElement class
+    ///     SecurityElementExtensionMehods provides several extension methods for the <see
+    ///     cref="SecurityElement" /> class. This type is in the Security namespace (not the System.Security
+    ///     namespace), so in order to use these extension methods, you will need to make sure you include
+    ///     this namespace as well as a reference to Security.dll.
     /// </summary>
     public static class SecurityElementExtensionMethods
     {
@@ -25,6 +28,9 @@ namespace Security
         /// <summary>
         ///     Convert a SecurityElement XML tree to an equivilent tree in the System.Xml object model
         /// </summary>
+        /// <param name="securityElement">security element to convert</param>
+        /// <param name="containingDocument">XML document to create the XML tree from</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="containingDocument" /> is null</exception>
         [SuppressMessage("Microsoft.Design", "CA1059:MembersShouldNotExposeCertainConcreteTypes", MessageId = "System.Xml.XmlNode", Justification = "This is an explicit conversion function to XmlElements")]
         [SuppressMessage("Microsoft.Design", "CA1059:MembersShouldNotExposeCertainConcreteTypes", MessageId = "System.Xml.XmlNode", Justification = "XmlDocument is needed as a factory for building up the XmlElement tree")]
         public static XmlElement ToXmlElement(this SecurityElement securityElement,
@@ -67,6 +73,9 @@ namespace Security
         /// <summary>
         ///     Perform a case-senstive comparsion of the content of two security elements
         /// </summary>
+        /// <param name="lhs">SecurityElement to compare</param>
+        /// <param name="rhs">SecurityElement to compare against</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="rhs"/> is null</exception>
         public static bool XmlEquals(this SecurityElement lhs, SecurityElement rhs)
         {
             return lhs.XmlEquals(rhs, StringComparison.Ordinal);
@@ -75,6 +84,10 @@ namespace Security
         /// <summary>
         ///     Perform a comparison of the content of two security elements
         /// </summary>
+        /// <param name="lhs">SecurityElement to compare</param>
+        /// <param name="rhs">SecurityElement to compare against</param>
+        /// <param name="comparisonType">type of comparison to perform</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="rhs"/> is null</exception>
         public static bool XmlEquals(this SecurityElement lhs,
                                      SecurityElement rhs,
                                      StringComparison comparisonType)

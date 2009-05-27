@@ -10,12 +10,17 @@ using System.Security.Policy;
 namespace Security.Policy
 {
     /// <summary>
-    ///     Extension methods for the ApplicationTrust class
+    ///     ApplicationTrustExtensionMethods provides extension methods for the <see cref="ApplicationTrust" />
+    ///     class This type is in the Security.Policy namespace (not the System.Security.Policy namespace), so
+    ///     in order to use these extension methods, you will need to make sure you include this namespace as
+    ///     well as a reference to Security.dll.
     /// </summary>
     public static class ApplicationTrustExtensionMethods
     {
         /// <summary>
-        ///     Get all of the assemblies which will be considered fully trusted by the application trust
+        ///     An ApplicationTrust object contains a default grant set as well as a list of assemblies which
+        ///     are fully trusted. The GetFullTrustAssemblies method retrieves the strong names of assemblies
+        ///     which the ApplicationTrust object considers to be fully trusted.
         /// </summary>
         public static IList<StrongName> GetFullTrustAssemblies(this ApplicationTrust applicationTrust)
         {

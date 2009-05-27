@@ -9,13 +9,22 @@ using System.Security.Policy;
 namespace Security.Policy
 {
     /// <summary>
-    ///     Extension methods for the Evidence type
+    ///     EvidenceExtensionMethods provides several extension methods for the <see cref="Evidence" /> class.
+    ///     This type is in the Security.Policy namespace (not the System.Security.Policy namespace), so in
+    ///     order to use these extension methods, you will need to make sure you include this namespace as
+    ///     well as a reference to Security.dll.
     /// </summary>
     public static class EvidenceExtensionMethods
     {
         /// <summary>
-        ///     Get a specific piece of assembly provided evidence
+        ///     Get the first evidence object of type <typeparamref name="T"/> supplied by the assembly that
+        ///     the Evidence collection is for.
         /// </summary>
+        /// <typeparam name="T">Type of assembly evidence that should be obtained.</typeparam>
+        /// <returns>
+        ///     The first evidence object of type <typeparamref name="T"/> that is in the assembly supplied
+        ///     evidence, or null if the assembly has not supplied any evidence of type <typeparamref name="T"/>.
+        /// </returns>
         [SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "This allows for a strongly typed return value. The alternate design also requires providing the type name explicitly.")]
         public static T GetAssemblyEvidence<T>(this Evidence evidence) where T : class
         {
@@ -42,8 +51,14 @@ namespace Security.Policy
         }
 
         /// <summary>
-        ///     Get a specific piece of host provided evidence
+        ///     Get the first evidence object of type <typeparamref name="T"/> supplied by the host in the
+        ///     Evidence collection.
         /// </summary>
+        /// <typeparam name="T">Type of host evidence that should be obtained.</typeparam>
+        /// <returns>
+        ///     The first evidence object of type <typeparamref name="T"/> that is in the host supplied
+        ///     evidence, or null if the host has not supplied any evidence of type <typeparamref name="T"/>.
+        /// </returns>
         [SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "This allows for a strongly typed return value. The alternate design also requires providing the type name explicitly.")]
         public static T GetHostEvidence<T>(this Evidence evidence) where T : class
         {

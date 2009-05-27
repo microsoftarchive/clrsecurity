@@ -13,13 +13,21 @@ using Security.Policy;
 namespace Security.Reflection
 {
     /// <summary>
-    ///     Extension methods for the Assembly class
+    ///     AssemblyExtensionMethods provides several extension methods for the <see cref="Assembly" /> class.
+    ///     This type is in the Security.Reflection namespace (not the System.Reflection namespace), so in
+    ///     order to use these extension methods, you will need to make sure you include this namespace as
+    ///     well as a reference to Security.dll.
     /// </summary>
     public static class AssemblyExtensionMethods
     {
         /// <summary>
-        ///     Get the permission set granted to the assembly
+        ///     The GetPermissionSet method returns the permission set that an assembly is granted. This
+        ///     method works for assemblies loaded via implicit loads, or explicit calls to <see
+        ///     cref="Assembly.Load(string)" /> or <see cref="Assembly.LoadFrom(string)" />. Results may not be
+        ///     accurate for assemblies loaded via <see cref="Assembly.Load(byte[])" />, or dynamic assemblies
+        ///     created with <see cref="AppDomain.DefineDynamicAssembly(AssemblyName, AssemblyBuilderAccess)" />.
         /// </summary>
+        /// <permission cref="PermissionSet">This method requries its immediate caller to be fully trusted</permission>
         [SecurityCritical]
         [PermissionSet(SecurityAction.LinkDemand, Unrestricted = true)]
         [PermissionSet(SecurityAction.Assert, Unrestricted = true)]
@@ -66,8 +74,14 @@ namespace Security.Reflection
         }
 
         /// <summary>
-        ///     Get an assembly's strong name
+        ///     Get an assembly's strong name.
         /// </summary>
+        /// <remarks>
+        ///     The <see cref="StrongName" /> object returned may be different from the strong name in the
+        ///     assembly's evidence if a host has chosen to customize the evidence the assembly was loaded
+        ///     with.
+        /// </remarks>
+        /// <exception cref="ArgumentException">if the assembly is not strongly named</exception>
         public static StrongName GetStrongName(this Assembly assembly)
         {
             if (!assembly.IsStrongNamed())
@@ -79,8 +93,13 @@ namespace Security.Reflection
         }
 
         /// <summary>
-        ///     Determine if an assembly is granted full trust in the current domain
+        ///     Determine if an assembly is granted full trust in the current domain.
         /// </summary>
+        /// <remarks>
+        ///     Results may not be accurate for assemblies loaded via <see cref="Assembly.Load(byte[])" />, or
+        ///     dynamic assemblies created with
+        ///     <see cref="AppDomain.DefineDynamicAssembly(AssemblyName, AssemblyBuilderAccess)" />
+        /// </remarks>
         [SecurityCritical]
         [SecurityTreatAsSafe]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Does not leak out information about the exact grant set")]
@@ -90,7 +109,8 @@ namespace Security.Reflection
         }
 
         /// <summary>
-        ///     Determine if an assembly is strong name signed
+        ///     Determine if an assembly is strong name signed.  This method does not attempt to detect if
+        ///     the assembly is delay signed and loaded because of a skip verification entry on the machine.
         /// </summary>
         public static bool IsStrongNamed(this Assembly assembly)
         {

@@ -9,13 +9,18 @@ using System.Security.Policy;
 namespace Security
 {
     /// <summary>
-    ///     Extension methods for the AppDomain class
+    ///     AppDomainExtensionMethods provides several extension methods for the <see cref="AppDomain"/> class.
+    ///     This type is in the Security namespace (not the System namespace), so in order to use these
+    ///     extension methods, you will need to make sure you include this namespace as well as a reference to
+    ///     Security.dll.
     /// </summary>
     public static class AppDomainExtensionMethods
     {
         /// <summary>
-        ///     Get the permissions that an AppDomain is granted
+        ///     Get the permission set that the current AppDomain is sandboxed with. This is the permission
+        ///     set which is used if a security demand crosses the AppDomain boundary. 
         /// </summary>
+        /// <permission cref="PermissionSet">This method requries its immediate caller to be fully trusted</permission>
         [SecurityCritical]
         [PermissionSet(SecurityAction.LinkDemand, Unrestricted = true)]
         [PermissionSet(SecurityAction.Assert, Unrestricted = true)]
@@ -47,8 +52,13 @@ namespace Security
         }
 
         /// <summary>
-        ///     Determine if an AppDomain is a simple sandbox domain
+        ///     Detect if an AppDomain is a simple sandbox style domain, created by passing a PermissionSet to
+        ///     the <see cref="AppDomain.CreateDomain(string, Evidence, AppDomainSetup, PermissionSet, StrongName[])"/>
+        ///     call.
         /// </summary>
+        /// <returns>
+        ///     True if the domain is a simple sandbox; false if it is a legacy v1.x domain.
+        /// </returns>
         [SecurityCritical]
         [SecurityTreatAsSafe]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Information about the speciifc trusted assemblies and default grant set is not exposed")]
@@ -60,6 +70,9 @@ namespace Security
         /// <summary>
         ///     Determine if an AppDomain is sandboxed
         /// </summary>
+        /// <returns>
+        ///     True if the AppDomain has a grant set other than FullTrust
+        /// </returns>
         [SecurityCritical]
         [SecurityTreatAsSafe]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Information about the specific partial trust grant set is not leaked")]
