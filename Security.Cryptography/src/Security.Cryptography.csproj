@@ -30,6 +30,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <DefineConstants>TRACE</DefineConstants>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OfficialBuild)' == 'true'">
     <SignAssembly>true</SignAssembly>
@@ -96,6 +97,12 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="X509Certificates\SafeCertContextHandle.cs" />
+    <Compile Include="X509Certificates\X509AlternateName.cs" />
+    <Compile Include="X509Certificates\X509AlternateNameBlob.cs" />
+    <Compile Include="X509Certificates\X509AlternateNameIPAddress.cs" />
+    <Compile Include="X509Certificates\X509AlternateNameOther.cs" />
+    <Compile Include="X509Certificates\X509AlternateNameString.cs" />
     <Compile Include="X509Certificates\X509CertificateCreationParameters.cs" />
     <Compile Include="X509Certificates\X509CertificateExtensionMethods.cs" />
     <Compile Include="X509Certificates\X509Certificate2ExtensionMethods.cs" />

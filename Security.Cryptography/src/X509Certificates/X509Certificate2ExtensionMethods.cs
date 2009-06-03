@@ -29,7 +29,8 @@ namespace Security.Cryptography.X509Certificates
                 return null;
             }
 
-            using (SafeNCryptKeyHandle privateKeyHandle = X509Native.AcquireCngPrivateKey(certificate.Handle))
+            using (SafeCertContextHandle certContext = certificate.GetCertificateContext())
+            using (SafeNCryptKeyHandle privateKeyHandle = X509Native.AcquireCngPrivateKey(certContext))
             {
                 // We need to assert for full trust when opening the CNG key because
                 // CngKey.Open(SafeNCryptKeyHandle) does a full demand for full trust, and we want to allow

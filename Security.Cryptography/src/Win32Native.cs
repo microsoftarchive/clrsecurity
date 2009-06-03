@@ -241,4 +241,51 @@ namespace Security.Cryptography
             return FreeLibrary(handle);
         }
     }
+
+    /// <summary>
+    ///     SafeHandle for memory allocated with LocalAlloc
+    /// </summary>
+    [SecurityCritical(SecurityCriticalScope.Everything)]
+    internal sealed class SafeLocalAllocHandle : SafeHandleZeroOrMinusOneIsInvalid
+    {
+        private SafeLocalAllocHandle() : base(true)
+        {
+        }
+
+        [DllImport("kernel32.dll")]
+        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
+        [SuppressUnmanagedCodeSecurity]
+        [SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass", Justification = "SafeHandle release method")]
+        private static extern IntPtr LocalFree(IntPtr hMem);
+
+        [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Protected as a SecurityCritical method")]
+        internal T Read<T>(int offset) where T : struct
+        {
+            bool addedRef = false;
+            RuntimeHelpers.PrepareConstrainedRegions();
+            try
+            {
+                DangerousAddRef(ref addedRef);
+
+                unsafe
+                {
+                    IntPtr pBase = new IntPtr((byte*)handle.ToPointer() + offset);
+                    return (T)Marshal.PtrToStructure(pBase, typeof(T));
+                }
+            }
+            finally
+            {
+                if (addedRef)
+                {
+                    DangerousRelease();
+                }
+            }
+
+        }
+
+        protected override bool ReleaseHandle()
+        {
+            return LocalFree(handle) == IntPtr.Zero;
+        }
+    }
 }

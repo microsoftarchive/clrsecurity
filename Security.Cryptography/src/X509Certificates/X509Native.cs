@@ -11,11 +11,71 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Win32.SafeHandles;
 
+using FILETIME = System.Runtime.InteropServices.ComTypes.FILETIME;
+
 namespace Security.Cryptography.X509Certificates
 {
     //
     // Public facing enumerations
     //
+
+    /// <summary>
+    ///     Types of alternate names that can be applied to an X509 certificate
+    /// </summary>
+    public enum AlternateNameType
+    {
+        None = 0,
+        
+        /// <summary>
+        ///     Alternate name that isn't one of the standard alternate name types.  This corresponds to the
+        ///     CERT_ALT_NAME_OTHER_NAME type.
+        /// </summary>
+        OtherName = 1,
+
+        /// <summary>
+        ///     Alternate name represented as an email address as defined in RFC 822.  This corresponds to the
+        ///     CERT_ALT_NAME_RFC822_NAME type.
+        /// </summary>
+        Rfc822Name = 2,
+
+        /// <summary>
+        ///     Alternate name represented as a DNS name.  This corresponds to the CERT_ALT_NAME_DNS_NAME type.
+        /// </summary>
+        DnsName = 3,
+
+        /// <summary>
+        ///     Alternate name represented as an x400 address.  This corresponds to the
+        ///     CERT_ALT_NAME_X400_ADDRESS type.
+        /// </summary>
+        X400Address = 4,
+
+        /// <summary>
+        ///     Alternate name given as a directory name.  This corresponds to the
+        ///     CERT_ALT_NAME_DIRECTORY_NAME type.
+        /// </summary>
+        DirectoryName = 5,
+
+        /// <summary>
+        ///     Alternate name given as an EDI party name.  This corresponds to the
+        ///     CERT_ALT_NAME_EDI_PARTY_NAME type.
+        /// </summary>
+        EdiPartyName = 6,
+
+        /// <summary>
+        ///     Alternate URL.  This corresponds to the CERT_ALT_NAME_URL type.
+        /// </summary>
+        Url = 7,
+
+        /// <summary>
+        ///     Alternate name as an IP address.  This corresponds to the CERT_ALT_NAME_IP_ADDRESS type.
+        /// </summary>
+        IPAddress = 8,
+
+        /// <summary>
+        ///     Alternate name as a registered ID.  This corresponds to the CERT_ALT_NAME_REGISTERED_ID type.
+        /// </summary>
+        RegisteredId = 9,
+    }
 
     /// <summary>
     ///     Flags for use when creating a new certificate
@@ -65,11 +125,43 @@ namespace Security.Cryptography.X509Certificates
         }
 
         /// <summary>
+        ///     Flags indicating how a certificate is encoded
+        /// </summary>
+        [Flags]
+        internal enum CertificateEncodingType
+        {
+            X509AsnEncoding         = 0x00000001,       // X509_ASN_ENCODING
+            Pkcs7AsnEncoding        = 0x00010000,       // PKCS7_ASN_ENCODING
+        }
+
+        /// <summary>
         ///     Well known certificate property IDs
         /// </summary>
         internal enum CertificateProperty
         {
             KeyProviderInfo                     = 2,    // CERT_KEY_PROV_INFO_PROP_ID 
+        }
+
+        /// <summary>
+        ///     X509 version numbers
+        /// </summary>
+        internal enum CertificateVersion
+        {
+            Version1                            = 0,    // CERT_V1
+            Version2                            = 1,    // CERT_V2
+            Version3                            = 2,    // CERT_V3
+        }
+
+        /// <summary>
+        ///     Flags for the CryptDecodeObjectEx API
+        /// </summary>
+        [Flags]
+        internal enum DecodeObjectFlags
+        {
+            None                    = 0x00000000,
+            NoCopy                  = 0x00000001,       // CRYPT_DECODE_NOCOPY_FLAG
+            ShareOidStrings         = 0x00000004,       // CRYPT_DECODE_SHARE_OID_STRING_FLAG
+            AllocateMemory          = 0x00008000,       // CRYPT_DECODE_ALLOC_FLAG
         }
 
         /// <summary>
@@ -84,6 +176,61 @@ namespace Security.Cryptography.X509Certificates
         //
         // Structures
         //
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct CERT_ALT_NAME_ENTRY
+        {
+            internal AlternateNameType dwAltNameChoice;
+            internal CERT_ALT_NAME_ENTRY_UNION altName;
+        }
+
+        [StructLayout(LayoutKind.Explicit)]
+        internal struct CERT_ALT_NAME_ENTRY_UNION
+        {
+            [FieldOffset(0)]
+            internal IntPtr pOtherName;     // PCERT_OTHER_NAME
+
+            [FieldOffset(0)]
+            internal IntPtr pwszRfc822Name; // LPWSTR
+
+            [FieldOffset(0)]
+            internal IntPtr pwszDNSName;    // LPWSTR
+
+            [FieldOffset(0)]
+            internal CapiNative.CRYPTOAPI_BLOB x400Address;
+
+            [FieldOffset(0)]
+            internal CapiNative.CRYPTOAPI_BLOB DirectoryName;
+
+            [FieldOffset(0)]
+            internal IntPtr pEdiPartyName;  // LPWSTR
+
+            [FieldOffset(0)]
+            internal IntPtr pwszURL;        // LPWSTR
+
+            [FieldOffset(0)]
+            internal CapiNative.CRYPTOAPI_BLOB IPAddress;
+
+            [FieldOffset(0)]
+            internal IntPtr pszRegisteredID;    // LPSTR
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct CERT_ALT_NAME_INFO
+        {
+            internal int cAltEntry;
+            internal IntPtr rgAltEntry;     // CERT_ALT_ENTRY[cAltEntry]
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct CERT_CONTEXT
+        {
+            internal CertificateEncodingType dwCertEncodingType;
+            internal IntPtr pbCertEncoded;      // byte *
+            internal int cbCertEncoded;
+            internal IntPtr pCertInfo;          // CERT_INFO *
+            internal IntPtr hCertStore;         // HCERTSTORE
+        }
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct CERT_EXTENSION
@@ -108,6 +255,23 @@ namespace Security.Cryptography.X509Certificates
         }
 
         [StructLayout(LayoutKind.Sequential)]
+        internal struct CERT_INFO
+        {
+            internal CertificateVersion dwVersion;
+            internal CapiNative.CRYPTOAPI_BLOB SerialNumber;
+            internal CapiNative.CRYPT_ALGORITHM_IDENTIFIER SignatureAlgorithm;
+            internal CapiNative.CRYPTOAPI_BLOB Issuer;
+            internal FILETIME NotBefore;
+            internal FILETIME NotAfter;
+            internal CapiNative.CRYPTOAPI_BLOB Subject;
+            internal CERT_PUBLIC_KEY_INFO SubjectPublicKeyInfo;
+            internal CapiNative.CRYPT_BIT_BLOB IssuerUniqueId;
+            internal CapiNative.CRYPT_BIT_BLOB SubjectUniqueId;
+            internal int cExtension;
+            internal IntPtr rgExtension;            // PCERT_EXTENSION
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
         internal struct CERT_KEY_PROV_INFO
         {
             [MarshalAs(UnmanagedType.LPWStr)]
@@ -127,6 +291,22 @@ namespace Security.Cryptography.X509Certificates
             internal int dwKeySpec;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct CERT_OTHER_NAME
+        {
+            [MarshalAs(UnmanagedType.LPStr)]
+            internal string pszObjId;
+
+            internal CapiNative.CRYPTOAPI_BLOB Value;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct CERT_PUBLIC_KEY_INFO
+        {
+            CapiNative.CRYPT_ALGORITHM_IDENTIFIER Algorithm;
+            CapiNative.CRYPT_BIT_BLOB PublicKey;
+        }
+
         //
         // P/Invokes
         //
@@ -136,30 +316,52 @@ namespace Security.Cryptography.X509Certificates
         internal static class UnsafeNativeMethods
         {
             [DllImport("crypt32.dll", SetLastError = true)]
+            internal static extern SafeCertContextHandle CertCreateSelfSignCertificate(SafeNCryptKeyHandle hCryptProvOrNCryptKey,
+                                                                                       [In] ref CapiNative.CRYPTOAPI_BLOB pSubjectIssuerBlob,
+                                                                                       X509CertificateCreationOptions dwFlags,
+                                                                                       IntPtr pKeyProvInfo, // PCRYPT_KEY_PROV_INFO
+                                                                                       [In] ref CapiNative.CRYPT_ALGORITHM_IDENTIFIER pSignatureAlgorithm,
+                                                                                       [In] ref Win32Native.SYSTEMTIME pStartTime,
+                                                                                       [In] ref Win32Native.SYSTEMTIME pEndTime,
+                                                                                       [In] ref CERT_EXTENSIONS pExtensions);
+
+            [DllImport("crypt32.dll")]
+            internal static extern SafeCertContextHandle CertDuplicateCertificateContext(IntPtr certContext);       // CERT_CONTEXT *
+
+            [DllImport("crypt32.dll")]
+            [SuppressMessage("Microsoft.Globalization", "CA2101:SpecifyMarshalingForPInvokeStringArguments", MessageId = "0", Justification = "This is an ANSI parameter, and BestFitMapping does not apply to parameters")]
+            internal static extern IntPtr CertFindExtension([MarshalAs(UnmanagedType.LPStr)] string pszObjId,
+                                                            int cExtensions,
+                                                            IntPtr rgExtensions);       // CERT_EXTENSION[cExtensions]
+
+            [DllImport("crypt32.dll", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool CryptAcquireCertificatePrivateKey(IntPtr pCert,             // PCERT_CONTEXT
+            internal static extern bool CertGetCertificateContextProperty(SafeCertContextHandle pCertContext,
+                                                                          CertificateProperty dwPropId,
+                                                                          [Out, MarshalAs(UnmanagedType.LPArray)] byte[] pvData,
+                                                                          [In, Out] ref int pcbData);
+
+            [DllImport("crypt32.dll", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            internal static extern bool CryptAcquireCertificatePrivateKey(SafeCertContextHandle pCert,
                                                                           AcquireCertificateKeyOptions dwFlags,
                                                                           IntPtr pvReserved,        // void *
                                                                           [Out] out SafeNCryptKeyHandle phCryptProvOrNCryptKey,
                                                                           [Out] out int dwKeySpec,
                                                                           [Out, MarshalAs(UnmanagedType.Bool)] out bool pfCallerFreeProvOrNCryptKey);
 
+            // This overload of CryptDecodeObjectEx must only be used with the CRYPT_DECODE_ALLOC flag
             [DllImport("crypt32.dll", SetLastError = true)]
-            internal static extern SafeCertificateContextHandle CertCreateSelfSignCertificate(SafeNCryptKeyHandle hCryptProvOrNCryptKey,
-                                                                                              [In] ref CapiNative.CRYPTOAPI_BLOB pSubjectIssuerBlob,
-                                                                                              X509CertificateCreationOptions dwFlags,
-                                                                                              IntPtr pKeyProvInfo, // PCRYPT_KEY_PROV_INFO
-                                                                                              [In] ref CapiNative.CRYPT_ALGORITHM_IDENTIFIER pSignatureAlgorithm,
-                                                                                              [In] ref Win32Native.SYSTEMTIME pStartTime,
-                                                                                              [In] ref Win32Native.SYSTEMTIME pEndTime,
-                                                                                              [In] ref CERT_EXTENSIONS pExtensions);
-
-            [DllImport("crypt32.dll", SetLastError = true)]
+            [SuppressMessage("Microsoft.Globalization", "CA2101:SpecifyMarshalingForPInvokeStringArguments", MessageId = "1", Justification = "This is an ANSI parameter, and BestFitMapping does not apply to parameters")]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool CertGetCertificateContextProperty(IntPtr pCertContext,          // PCERT_CONTEXT
-                                                                          CertificateProperty dwPropId,
-                                                                          [Out, MarshalAs(UnmanagedType.LPArray)] byte[] pvData,
-                                                                          [In, Out] ref int pcbData);
+            internal static extern bool CryptDecodeObjectEx(CertificateEncodingType encodingType,
+                                                            [MarshalAs(UnmanagedType.LPStr)] string lpszStructType,
+                                                            IntPtr pbEncoded,       // BYTE[cbEncoded]
+                                                            int cbEncoded,
+                                                            DecodeObjectFlags flags,
+                                                            IntPtr pDecodPara,      // PCRYPT_DECODE_PARA
+                                                            [Out] out SafeLocalAllocHandle pvStructInfo,
+                                                            [In, Out] ref int pcbStructInfo);
         }
 
         //
@@ -171,9 +373,10 @@ namespace Security.Cryptography.X509Certificates
         /// </summary>
         [SecurityCritical]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of LinkDemands")]
-        internal static SafeNCryptKeyHandle AcquireCngPrivateKey(IntPtr certificateContext)
+        internal static SafeNCryptKeyHandle AcquireCngPrivateKey(SafeCertContextHandle certificateContext)
         {
-            Debug.Assert(certificateContext != IntPtr.Zero, "certificateContext != IntPtr.Zero");
+            Debug.Assert(certificateContext != null, "certificateContext != null");
+            Debug.Assert(!certificateContext.IsClosed && !certificateContext.IsInvalid, "!certificateContext.IsClosed && !certificateContext.IsInvalid");
 
             bool freeKey = true;
             SafeNCryptKeyHandle privateKey = null;
@@ -217,13 +420,13 @@ namespace Security.Cryptography.X509Certificates
         /// </summary>
         [SecurityCritical]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "SecurityCritical API which requires review from any other API that calls it")]
-        internal static SafeCertificateContextHandle CreateSelfSignedCertificate(SafeNCryptKeyHandle key,
-                                                                                 byte[] subjectName,
-                                                                                 X509CertificateCreationOptions creationOptions,
-                                                                                 string signatureAlgorithmOid,
-                                                                                 DateTime startTime,
-                                                                                 DateTime endTime,
-                                                                                 X509ExtensionCollection extensions)
+        internal static SafeCertContextHandle CreateSelfSignedCertificate(SafeNCryptKeyHandle key,
+                                                                          byte[] subjectName,
+                                                                          X509CertificateCreationOptions creationOptions,
+                                                                          string signatureAlgorithmOid,
+                                                                          DateTime startTime,
+                                                                          DateTime endTime,
+                                                                          X509ExtensionCollection extensions)
         {
             Debug.Assert(key != null, "key != null");
             Debug.Assert(!key.IsClosed && !key.IsInvalid, "!key.IsClosed && !key.IsInvalid");
@@ -319,7 +522,7 @@ namespace Security.Cryptography.X509Certificates
 
                         // Now that we've converted all the inputs to native data structures, we can generate
                         // the self signed certificate for the input key.
-                        SafeCertificateContextHandle selfSignedCertHandle =
+                        SafeCertContextHandle selfSignedCertHandle =
                             UnsafeNativeMethods.CertCreateSelfSignCertificate(key,
                                                                               ref nativeSubjectName,
                                                                               creationOptions,
@@ -374,14 +577,72 @@ namespace Security.Cryptography.X509Certificates
         }
 
         /// <summary>
+        ///     Decode a certificate extension into a buffer.  This buffer must be closed before the
+        ///     containing certificate is closed
+        /// </summary>
+        [SecurityCritical]
+        internal static SafeLocalAllocHandle DecodeExtension(CERT_EXTENSION extension)
+        {
+            SafeLocalAllocHandle decodedExtension = null;
+            int decodedSize = 0;
+
+            bool decoded = UnsafeNativeMethods.CryptDecodeObjectEx(CertificateEncodingType.Pkcs7AsnEncoding | CertificateEncodingType.X509AsnEncoding,
+                                                                   extension.pszObjId,
+                                                                   extension.Value.pbData,
+                                                                   extension.Value.cbData,
+                                                                   DecodeObjectFlags.AllocateMemory | DecodeObjectFlags.NoCopy | DecodeObjectFlags.ShareOidStrings,
+                                                                   IntPtr.Zero,
+                                                                   out decodedExtension,
+                                                                   ref decodedSize);
+
+            if (!decoded)
+            {
+                Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+            }
+
+            return decodedExtension;
+        }
+
+        /// <summary>
+        ///     Duplicate the certificate context into a safe handle
+        /// </summary>
+        [SecurityCritical]
+        internal static SafeCertContextHandle DuplicateCertContext(IntPtr context)
+        {
+            Debug.Assert(context != IntPtr.Zero);
+
+            return UnsafeNativeMethods.CertDuplicateCertificateContext(context);
+        }
+
+        /// <summary>
+        ///     Find the certificate extension identified with the given OID
+        /// </summary>
+        [SecurityCritical]
+        [SecurityTreatAsSafe]
+        internal static CERT_EXTENSION FindExtension(SafeCertContextHandle certificateContext, string extensionOid)
+        {
+            Debug.Assert(certificateContext != null, "certificateContext != null");
+            Debug.Assert(!certificateContext.IsClosed && !certificateContext.IsInvalid, "!certificateContext.IsClosed && !certificateContext.IsInvalid");
+            Debug.Assert(!String.IsNullOrEmpty(extensionOid), "!String.IsNullOrEmpty(extensionOid)");
+            Debug.Assert(HasExtension(certificateContext, extensionOid), "HasExtension(extensionOid)");
+
+            CERT_INFO certInfo = GetCertInfo(certificateContext);
+            IntPtr extension = UnsafeNativeMethods.CertFindExtension(extensionOid,
+                                                                     certInfo.cExtension,
+                                                                     certInfo.rgExtension);
+            return (CERT_EXTENSION)Marshal.PtrToStructure(extension, typeof(CERT_EXTENSION));
+        }
+
+        /// <summary>
         ///     Get an arbitrary property of a certificate
         /// </summary>
         [SecurityCritical]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "SecurityCritical API which requires review to call")]
-        internal static byte[] GetCertificateProperty(IntPtr certificateContext,
+        internal static byte[] GetCertificateProperty(SafeCertContextHandle certificateContext,
                                                       CertificateProperty property)
         {
-            Debug.Assert(certificateContext != IntPtr.Zero, "certificateContext != IntPtr.Zero");
+            Debug.Assert(certificateContext != null, "certificateContext != null");
+            Debug.Assert(!certificateContext.IsClosed && !certificateContext.IsInvalid, "!certificateContext.IsClosed && !certificateContext.IsInvalid");
 
             byte[] buffer = null;
             int bufferSize = 0;
@@ -410,14 +671,44 @@ namespace Security.Cryptography.X509Certificates
         }
 
         /// <summary>
+        ///     Get the certificate context which corresponds to the given certificate info
+        /// </summary>
+        [SecurityCritical]
+        [SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", MessageId = "System.Runtime.InteropServices.SafeHandle.DangerousGetHandle", Justification = "This is done within a CER and an AddRef/Release")]
+        internal static CERT_INFO GetCertInfo(SafeCertContextHandle certificateContext)
+        {
+            Debug.Assert(certificateContext != null, "certificateContext != null");
+            Debug.Assert(!certificateContext.IsClosed && !certificateContext.IsInvalid, "!certificateContext.IsClosed && !certificateContext.IsInvalid");
+
+            bool addedRef = false;
+
+            RuntimeHelpers.PrepareConstrainedRegions();
+            try
+            {
+                certificateContext.DangerousAddRef(ref addedRef);
+
+                CERT_CONTEXT context = (CERT_CONTEXT)Marshal.PtrToStructure(certificateContext.DangerousGetHandle(), typeof(CERT_CONTEXT));
+                return (CERT_INFO)Marshal.PtrToStructure(context.pCertInfo, typeof(CERT_INFO));
+            }
+            finally
+            {
+                if (addedRef)
+                {
+                    certificateContext.DangerousRelease();
+                }
+            }
+        }
+
+        /// <summary>
         ///     Get a property of a certificate formatted as a structure
         /// </summary>
         [SecurityCritical]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "SecurityCritical API which requires review to call")]
-        internal static T GetCertificateProperty<T>(IntPtr certificateContext,
+        internal static T GetCertificateProperty<T>(SafeCertContextHandle certificateContext,
                                                     CertificateProperty property) where T : struct
         {
-            Debug.Assert(certificateContext != IntPtr.Zero, "certificateContext != IntPtr.Zero");
+            Debug.Assert(certificateContext != null, "certificateContext != null");
+            Debug.Assert(!certificateContext.IsClosed && !certificateContext.IsInvalid, "!certificateContext.IsClosed && !certificateContext.IsInvalid");
 
             byte[] rawProperty = GetCertificateProperty(certificateContext, property);
             Debug.Assert(rawProperty.Length >= Marshal.SizeOf(typeof(T)), "Property did not return expected structure");
@@ -432,14 +723,35 @@ namespace Security.Cryptography.X509Certificates
         }
 
         /// <summary>
+        ///     Determine if a certificate context has a particular extension
+        /// </summary>
+        [SecurityCritical]
+        [SecurityTreatAsSafe]
+        internal static bool HasExtension(SafeCertContextHandle certificateContext, string extensionOid)
+        {
+            Debug.Assert(certificateContext != null, "certificateContext != null");
+            Debug.Assert(!certificateContext.IsClosed && !certificateContext.IsInvalid, "!certificateContext.IsClosed && !certificateContext.IsInvalid");
+            Debug.Assert(!String.IsNullOrEmpty(extensionOid), "!String.IsNullOrEmpty(extensionOid)");
+
+            CERT_INFO certInfo = GetCertInfo(certificateContext);
+            if (certInfo.cExtension == 0)
+            {
+                return false;
+            }
+
+            return UnsafeNativeMethods.CertFindExtension(extensionOid, certInfo.cExtension, certInfo.rgExtension) != IntPtr.Zero;
+        }
+
+        /// <summary>
         ///     Determine if a certificate has a specific property
         /// </summary>
         [SecurityCritical]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "SecurityCritical API which requires review to call")]
-        internal static bool HasCertificateProperty(IntPtr certificateContext,
+        internal static bool HasCertificateProperty(SafeCertContextHandle certificateContext,
                                                     CertificateProperty property)
         {
-            Debug.Assert(certificateContext != IntPtr.Zero, "certificateContext != IntPtr.Zero");
+            Debug.Assert(certificateContext != null, "certificateContext != null");
+            Debug.Assert(!certificateContext.IsClosed && !certificateContext.IsInvalid, "!certificateContext.IsClosed && !certificateContext.IsInvalid");
 
             byte[] buffer = null;
             int bufferSize = 0;
@@ -478,30 +790,6 @@ namespace Security.Cryptography.X509Certificates
                     Debug.Assert(false, "Unknown certificate signature algorithm");
                     return null;
             }
-        }
-    }
-
-    /// <summary>
-    ///     Safe handle to represent a native CERT_CONTEXT
-    /// </summary>
-    [SecurityCritical(SecurityCriticalScope.Everything)]
-    internal sealed class SafeCertificateContextHandle : SafeHandleZeroOrMinusOneIsInvalid
-    {
-        private SafeCertificateContextHandle()
-            : base(true)
-        {
-        }
-
-        [DllImport("crypt32.dll")]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
-        [SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass", Justification = "SafeHandle release method")]
-        [SuppressUnmanagedCodeSecurity]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool CertFreeCertificateContext(IntPtr pCertContext);
-
-        protected override bool ReleaseHandle()
-        {
-            return CertFreeCertificateContext(handle);
         }
     }
 }

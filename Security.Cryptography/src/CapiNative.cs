@@ -15,19 +15,78 @@ namespace Security.Cryptography
     // Public facing enumerations
     //
 
+    /// <summary>
+    ///     The OidGroup enumeration has values for each of the built in Windows groups that OIDs can be
+    ///     categorized into.
+    /// </summary>
     public enum OidGroup
     {
+        /// <summary>
+        ///     When used for searching for or enumerating over OIDs, specifies that the search or enumeration
+        ///     should include OIDs found in all of the groups. 
+        /// </summary>
         AllGroups                           = 0,
-        HashAlgorithm                       = 1,        // CRYPT_HASH_ALG_OID_GROUP_ID
-        EncryptionAlgorithm                 = 2,        // CRYPT_ENCRYPT_ALG_OID_GROUP_ID
-        PublicKeyAlgorithm                  = 3,        // CRYPT_PUBKEY_ALG_OID_GROUP_ID
-        SignatureAlgorithm                  = 4,        // CRYPT_SIGN_ALG_OID_GROUP_ID
-        Attribute                           = 5,        // CRYPT_RDN_ATTR_OID_GROUP_ID
-        ExtensionOrAttribute                = 6,        // CRYPT_EXT_OR_ATTR_OID_GROUP_ID
-        EnhancedKeyUsage                    = 7,        // CRYPT_ENHKEY_USAGE_OID_GROUP_ID
-        Policy                              = 8,        // CRYPT_POLICY_OID_GROUP_ID
-        Template                            = 9,        // CRYPT_TEMPLATE_OID_GROUP_ID
-        KeyDerivationFunction               = 10,       // CRYPT_KDF_OID_GROUP_ID
+
+        /// <summary>
+        ///     A group for OIDs that represent hashing algortihms.  This maps to the native
+        ///     CRYPT_HASH_ALG_OID_GROUP_ID group.
+        /// </summary>
+        HashAlgorithm                       = 1,
+
+        /// <summary>
+        ///     A group for OIDs that represent symmetric encryption algorithms.  This maps to the native
+        ///     CRYPT_ENCRYPT_ALG_OID_GROUP_ID group.
+        /// </summary>
+        EncryptionAlgorithm                 = 2,
+
+        /// <summary>
+        ///     A group for OIDs that represent asymmetric encryption algorithms.  This maps to the native
+        ///     CRYPT_PUBKEY_ALG_OID_GROUP_ID group.
+        /// </summary>
+        PublicKeyAlgorithm                  = 3,
+
+        /// <summary>
+        ///     A group for OIDs that represent digital signature algorithms.  This maps to the native
+        ///     CRYPT_SIGN_ALG_OID_GROUP_ID group.
+        /// </summary>
+        SignatureAlgorithm                  = 4,
+
+        /// <summary>
+        ///     A group for OIDs that represent RDN attributes.  This maps to the native
+        ///     CRYPT_RDN_ATTR_OID_GROUP_ID group.
+        /// </summary>
+        Attribute                           = 5,
+
+        /// <summary>
+        ///     A group for OIDs that represent X.509 certificate extensions or attributes.  This maps to
+        ///     the native CRYPT_EXT_OR_ATTR_OID_GROUP_ID group.
+        /// </summary>
+        ExtensionOrAttribute                = 6,
+
+        /// <summary>
+        ///     A group for OIDs that represent X.509 certificate enhanced key usages.  This maps to the
+        ///     native CRYPT_ENHKEY_USAGE_OID_GROUP_ID group.
+        /// </summary>
+        EnhancedKeyUsage                    = 7,
+
+        /// <summary>
+        ///     A group for OIDs that represent policies.  This maps to the native CRYPT_POLICY_OID_GROUP_ID
+        ///     group.
+        /// </summary>
+        Policy                              = 8,
+
+        /// <summary>
+        ///     A group for OIDs that represent templates.  This maps to the native
+        ///     CRYPT_TEMPLATE_OID_GROUP_ID group.
+        /// </summary>
+        Template                            = 9,
+
+
+        /// <summary>
+        ///     A group for OIDS that represent key derivation algorithms.  This maps to the native
+        ///     CRYPT_KDF_OID_GROUP_ID group.
+        /// </summary>
+        KeyDerivationFunction               = 10,
     }
 
     /// <summary>
@@ -109,6 +168,7 @@ namespace Security.Cryptography
 
         internal static class WellKnownOids
         {
+            // Algorithm OIDS
             internal static string RsaSha1      = "1.2.840.113549.1.1.5";       // szOID_RSA_SHA1RSA
             internal static string RsaSha256    = "1.2.840.113549.1.1.11";      // szOID_RSA_SHA256RSA
             internal static string RsaSha384    = "1.2.840.113549.1.1.12";      // szOID_RSA_SHA384RSA
@@ -116,6 +176,12 @@ namespace Security.Cryptography
             internal static string Sha256       = "2.16.840.1.101.3.4.2.1";     // szOID_NIST_sha256
             internal static string Sha384       = "2.16.840.1.101.3.4.2.2";     // szOID_NIST_sha384
             internal static string Sha512       = "2.16.840.1.101.3.4.2.3";     // szOID_NIST_sha512
+
+            // X509 certificate extension OIDS
+            internal static string SubjectAlternateName     = "2.5.29.7";       // szOID_SUBJECT_ALT_NAME
+            internal static string IssuerAlternateName      = "2.5.29.8";       // szOID_ISSUER_ALT_NAME
+            internal static string SubjectAlternateName2    = "2.5.29.17";      // szOID_SUBJECT_ALT_NAME2
+            internal static string IssuerAlternateName2     = "2.5.29.18";      // szOID_ISSUER_ALT_NAME2
         }
 
         //
@@ -129,6 +195,14 @@ namespace Security.Cryptography
             internal string pszObjId;
 
             internal CRYPTOAPI_BLOB Parameters;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct CRYPT_BIT_BLOB
+        {
+            internal int cbData;
+            internal IntPtr pbData; // byte *
+            internal int cUnusedBits;
         }
 
         // Current CRYPT_OID_INFO structure
@@ -312,6 +386,26 @@ namespace Security.Cryptography
             }
 
             return oidInformation.ToArray();
+        }
+
+        /// <summary>
+        ///     Read a CAPI blob into a managed byte array
+        /// </summary>
+        [SecurityCritical]
+        internal static byte[] ReadBlob(CRYPTOAPI_BLOB capiBlob)
+        {
+            byte[] managedBlob = new byte[capiBlob.cbData];
+
+            unsafe
+            {
+                byte* pCapiBlob = (byte*)capiBlob.pbData.ToPointer();
+                for (int i = 0; i < managedBlob.Length; ++i)
+                {
+                    managedBlob[i] = pCapiBlob[i];
+                }
+            }
+
+            return managedBlob;
         }
 
         /// <summary>

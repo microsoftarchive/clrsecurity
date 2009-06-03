@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -17,6 +19,7 @@ namespace Microsoft.Security.Cryptography.X509Certificates.Test
     [TestClass]
     public sealed class X509Certificate2Tests
     {
+        private static X509Certificate2 s_exchangeCert = ExchangeCert;
         private static X509Certificate2 s_microsoftCert = MicrosoftCert;
 
         /// <summary>
@@ -31,6 +34,22 @@ namespace Microsoft.Security.Cryptography.X509Certificates.Test
                    byte[] cert = new byte[certStream.Length];
                    certStream.Read(cert, 0, cert.Length);
                    return new X509Certificate2(cert);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Gets a well-known certificate loaded from a file
+        /// </summary>
+        private static X509Certificate2 ExchangeCert
+        {
+            get
+            {
+                using (Stream certStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Microsoft.Security.Cryptography.Test.Properties.exchange.microsoft.com.cer"))
+                {
+                    byte[] cert = new byte[certStream.Length];
+                    certStream.Read(cert, 0, cert.Length);
+                    return new X509Certificate2(cert);
                 }
             }
         }
@@ -83,6 +102,30 @@ namespace Microsoft.Security.Cryptography.X509Certificates.Test
                     }
                 }
             }
+        }
+
+        /// <summary>
+        ///     Tests to ensure that GetSubjectAlternateNames works as expected
+        /// </summary>
+        [TestMethod]
+        public void GetSubjectAlternateNamesTest()
+        {
+
+            List<X509AlternateName> expectedNames = new List<X509AlternateName>(new X509AlternateName[]
+            {
+                new X509AlternateNameString(AlternateNameType.DnsName, "exchange.microsoft.com"),
+                new X509AlternateNameString(AlternateNameType.DnsName, "dogfoodrights")
+            });
+            IEnumerable<X509AlternateName> actualNames = s_exchangeCert.GetSubjectAlternateNames();
+
+            Assert.AreEqual(expectedNames.Count, actualNames.Count());
+
+            foreach (X509AlternateName actualName in actualNames)
+            {
+                expectedNames.Remove(actualName);
+            }
+
+            Assert.AreEqual(0, expectedNames.Count);
         }
 
         /// <summary>

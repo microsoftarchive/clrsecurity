@@ -26,20 +26,23 @@ namespace Security.Cryptography.Xml
     ///     so that SignedXml creates this version of the XPath transform when processing a signature.
     ///     
     ///     This transform can be registered in machine.config in a section similar to:
-    ///       <configuration>
-    ///         <mscorlib>
-    ///           <cryptographySettings>
-    ///             <cryptoNameMapping>
-    ///               <cryptoClasses>
-    ///                 <cryptoClass XmlDsigXPathWithNamespacesTransform="Security.Cryptography.Xml.XmlDsigXPathWithNamespacesTransform, Security.Cryptography, Version=1.4.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
-    ///               </cryptoClasses>
-    ///               <nameEntry name="http://www.w3.org/TR/1999/REC-xpath-19991116" class="XmlDsigXPathWithNamespacesTransform" />
-    ///             </cryptoNameMapping>
-    ///           </cryptographySettings>
-    ///         </mscorlib>
-    ///       </configuration>
-    ///
-    ///    See http://www.w3.org/TR/xmldsig-core/#sec-XPath for more information on the XPath transform.
+    ///     <example>
+    ///         <![CDATA[
+    ///           <configuration>
+    ///             <mscorlib>
+    ///               <cryptographySettings>
+    ///                 <cryptoNameMapping>
+    ///                   <cryptoClasses>
+    ///                     <cryptoClass XmlDsigXPathWithNamespacesTransform="Security.Cryptography.Xml.XmlDsigXPathWithNamespacesTransform, Security.Cryptography, Version=1.4.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
+    ///                   </cryptoClasses>
+    ///                   <nameEntry name="http://www.w3.org/TR/1999/REC-xpath-19991116" class="XmlDsigXPathWithNamespacesTransform" />
+    ///                 </cryptoNameMapping>
+    ///               </cryptographySettings>
+    ///             </mscorlib>
+    ///           </configuration>    
+    ///         ]]>
+    ///     </example>
+    ///     See http://www.w3.org/TR/xmldsig-core/#sec-XPath for more information on the XPath transform.
     /// </summary>
     [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "XPath", Justification = "This matches the XPath spelling in the rest of the framework.")]
     public sealed class XmlDsigXPathWithNamespacesTransform : XmlDsigXPathTransform

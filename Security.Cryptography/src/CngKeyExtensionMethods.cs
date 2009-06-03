@@ -41,7 +41,7 @@ namespace Security.Cryptography
 
             using (SafeNCryptKeyHandle keyHandle = key.Handle)
             {
-                using (SafeCertificateContextHandle selfSignedCertHandle =
+                using (SafeCertContextHandle selfSignedCertHandle =
                     X509Native.CreateSelfSignedCertificate(keyHandle,
                                                            creationParameters.SubjectName.RawData,
                                                            creationParameters.CertificateCreationOptions,
