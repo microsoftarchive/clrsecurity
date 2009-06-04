@@ -5,6 +5,7 @@ using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Policy;
+using Security.Properties;
 
 namespace Security.Policy
 {
@@ -16,6 +17,27 @@ namespace Security.Policy
     /// </summary>
     public static class EvidenceExtensionMethods
     {
+        /// <summary>
+        ///     Add an object to the host evidence list, ensuring that only one item of evidence of the
+        ///     given type exists in the final evidence collection.
+        /// </summary>
+        /// <typeparam name="T">Type of evidence being added</typeparam>
+        /// <param name="evidence">evidence collection to add to</param>
+        /// <param name="evidenceObject">object to add to the evidence collection</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="evidenceObject" /> is null</exception>
+        /// <exception cref="InvalidOperationException">
+        ///     if the evidence collection already contains an evidence object of type <typeparamref name="T"/>
+        /// </exception>
+        public static void AddHostEvidence<T>(this Evidence evidence, T evidenceObject) where T : class
+        {
+            if (evidenceObject == null)
+                throw new ArgumentNullException("evidenceObject");
+            if (evidence.GetHostEvidence<T>() != null)
+                throw new InvalidOperationException(String.Format(Resources.Culture, Resources.DuplicateEvidence, typeof(T).ToString()));
+
+            evidence.AddHost(evidenceObject);
+        }
+
         /// <summary>
         ///     Get the first evidence object of type <typeparamref name="T"/> supplied by the assembly that
         ///     the Evidence collection is for.

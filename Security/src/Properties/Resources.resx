@@ -1,5 +1,4 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c) Microsoft Corporation.  All rights reserved. -->
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -120,5 +119,8 @@
   </resheader>
   <data name="AssemblyNotStrongNamed" xml:space="preserve">
     <value>The assembly is not strong name signed.</value>
+  </data>
+  <data name="DuplicateEvidence" xml:space="preserve">
+    <value>This evidence collection already contains an evidence object of type '{0}'.</value>
   </data>
 </root>

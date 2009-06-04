@@ -35,8 +35,12 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Security" />
     <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Security.csproj">
@@ -50,11 +54,14 @@
   <ItemGroup>
     <Compile Include="AppDomainFactory.cs" />
     <Compile Include="AppDomainTests.cs" />
+    <Compile Include="PermissionSetFactoryTests.cs" />
     <Compile Include="Policy\ApplicationTrustTests.cs" />
     <Compile Include="Policy\EvidenceTests.cs" />
     <Compile Include="Policy\StrongNameTests.cs" />
     <Compile Include="Principal\WindowsIdentityTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SandboxActivatorTests.cs" />
+    <Compile Include="SandboxFactoryTests.cs" />
     <Compile Include="SecurityElementTests.cs" />
   </ItemGroup>
   <ItemGroup Condition="Exists('..\AssemblyVersion.cs')">

@@ -46,7 +46,11 @@
   <ItemGroup>
     <Compile Include="AppDomainExtensionMethods.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="SandboxActivator.cs" />
+    <Compile Include="SandboxFactory.cs" />
     <Compile Include="SecurityElementExtensionMethods.cs" />
+    <Compile Include="StandardPermissionSet.cs" />
+    <Compile Include="PermissionSetFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Policy\ApplicationTrustExtensionMethods.cs" />
@@ -54,6 +58,9 @@
     <Compile Include="Policy\StrongNameExtensionMethods.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Principal\GroupSecurityIdentifierAttributes.cs" />
+    <Compile Include="Principal\GroupSecurityIdentifierInformation.cs" />
+    <Compile Include="Principal\SafeTokenHandle.cs" />
     <Compile Include="Principal\WindowsIdentityExtensionMethods.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -68,9 +75,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Principal\GroupSecurityIdentifierAttributes.cs" />
-    <Compile Include="Principal\GroupSecurityIdentifierInformation.cs" />
-    <Compile Include="Principal\SafeTokenHandle.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
