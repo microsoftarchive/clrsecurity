@@ -6,7 +6,8 @@ using System.Security.Cryptography;
 namespace Security.Cryptography
 {
     /// <summary>
-    ///     Extra CngProvider objects for providers not included in the standard CngProvider type
+    ///     The CngProvider2 class provides additional <see cref="CngProvider" /> objects to suppliment the
+    ///     ones found on the standard <see cref="CngProvider" /> type.
     /// </summary>
     public static class CngProvider2
     {

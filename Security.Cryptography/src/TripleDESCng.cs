@@ -7,19 +7,53 @@ using System.Security.Cryptography;
 namespace Security.Cryptography
 {
     /// <summary>
-    ///     CNG implementation of the 3DES encryption algorithm.
-    ///     
-    ///     See code:Microsoft.Security.Cryptography.BCryptSymmetricAlgorithm
+    ///     <para>
+    ///         The TripleDESCng class provides a wrapper for the CNG implementation of the 3DES algorithm. It
+    ///         provides the same interface as the <see cref="TripleDESCryptoServiceProvider" />
+    ///         implementation shipped with the .NET Framework.
+    ///     </para>
+    ///     <para>
+    ///         TripleDESCng uses the BCrypt layer of CNG to do its work, and requires Windows Vista and the
+    ///         .NET Framework 3.5.
+    ///     </para>
+    ///     <para>
+    ///         Since most of the TripleDESCng APIs are inherited from the <see cref="TripleDES" /> base
+    ///         class, please see the MSDN documentation for TripleDES for a complete description.
+    ///     </para>
     /// </summary>
     [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "DES", Justification = "Conforms with existing TripleDES BCL pattern")]
     public sealed class TripleDESCng : TripleDES, ICngSymmetricAlgorithm
     {
         private BCryptSymmetricAlgorithm m_symmetricAlgorithm;
 
+        /// <summary>
+        ///     Constructs a TripleDESCng object. The default settings for this object are:
+        ///     <list type="bullet">
+        ///         <item>Algorithm provider - Microsoft Primitive Algorithm Provider</item>
+        ///         <item>Block size - 64 bits</item>
+        ///         <item>Feedback size - 64 bits</item>
+        ///         <item>Key size - 192 bits</item>
+        ///         <item>Cipher mode - CipherMode.CBC</item>
+        ///         <item>Padding mode - PaddingMode.PKCS7</item>
+        ///     </list>
+        /// </summary>
         public TripleDESCng() : this(CngProvider2.MicrosoftPrimitiveAlgorithmProvider)
         {
         }
 
+        /// <summary>
+        ///     Constructs a TripleDESCng object which uses the specified algorithm provider. The default
+        ///     settings for this object are:
+        ///     <list type="bullet">
+        ///         <item>Block size - 64 bits</item>
+        ///         <item>Feedback size - 64 bits</item>
+        ///         <item>Key size - 192 bits</item>
+        ///         <item>Cipher mode - CipherMode.CBC</item>
+        ///         <item>Padding mode - PaddingMode.PKCS7</item>
+        ///     </list>
+        /// </summary>
+        /// <param name="algorithmProvider">algorithm provider to use for 3DES computation</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="algorithmProvider" /> is null</exception>
         public TripleDESCng(CngProvider algorithmProvider)
         {
             if (algorithmProvider == null)
@@ -102,6 +136,14 @@ namespace Security.Cryptography
             get { return m_symmetricAlgorithm.LegalBlockSizes; }
         }
 
+        /// <summary>
+        ///     Gets or sets the cipher mode to use during encryption or decryption. Supported modes are:
+        ///     <list type="bullet">
+        ///         <item>CipherMode.CBC</item>
+        ///         <item>CipherMode.ECB</item>
+        ///         <item>CipherMode.CFB</item>
+        ///     </list>
+        /// </summary>
         public override CipherMode Mode
         {
             get { return m_symmetricAlgorithm.Mode; }

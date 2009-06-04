@@ -90,13 +90,22 @@ namespace Security.Cryptography
     }
 
     /// <summary>
-    ///     Flags for the CryptRegisterOIDInfo API
+    ///     The OidRegistrationOptions enumeration has flags used to control how a new OID is registered on
+    ///     the machine with the <see cref="Oid2.Register(OidRegistrationOptions)" /> API.
     /// </summary>
     [Flags]
     public enum OidRegistrationOptions
     {
-        None                                = 0x00000000, 
-        InstallBeforeDefaultEntries         = 0x00000001,   // CRYPT_INSTALL_OID_INFO_BEFORE_FLAG 
+        /// <summary>
+        ///     The OID is installed after the built in OIDs
+        /// </summary>
+        None                                = 0x00000000,
+
+        /// <summary>
+        ///     The OID is installed before the built in OIDs.  This maps to the native
+        ///     CRYPT_INSTALL_OID_INFO_BEFORE_FLAG option.
+        /// </summary>
+        InstallBeforeDefaultEntries         = 0x00000001,
     }
 
     /// <summary>

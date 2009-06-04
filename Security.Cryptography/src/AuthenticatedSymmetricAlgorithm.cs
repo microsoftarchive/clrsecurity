@@ -8,7 +8,17 @@ using Security.Cryptography.Properties;
 namespace Security.Cryptography
 {
     /// <summary>
-    ///     Abstract base class for authenticated symmetric algorithms
+    ///     <para>
+    ///         The AuthenticatedSymmetricAlgorithm abstract base class forms the base class for symmetric
+    ///         algorithms which support authentication as well as encryption. Authenticated symmetric
+    ///         algorithms produce an authentication tag in addition to ciphertext, which allows data to be
+    ///         both authenticated and protected for privacy. For instance, AES with CCM or GCM chaining modes
+    ///         provides authentication, and therefore derive from AuthenticatedSymmetricAlgorithm.
+    ///    </para>
+    ///    <para>
+    ///         AuthenticatedSymmetricAlgorithm derives from <see cref="SymmetricAlgorithm" />, so all of the
+    ///         SymmetricAlgorithm APIs also apply to AuthenticatedSymmericAlgorithm objects.
+    ///     </para>
     /// </summary>
     public abstract class AuthenticatedSymmetricAlgorithm : SymmetricAlgorithm
     {
@@ -21,22 +31,27 @@ namespace Security.Cryptography
         //
 
         /// <summary>
-        ///     Valid tag sizes that this instance supports (in bits)
+        ///     The LegalTagSizes field is set by authenticated symmetric algorithm implementations to be the
+        ///     set of valid authentication tag sizes expressed in bits.
         /// </summary>
         [SuppressMessage("Microsoft.Design", "CA1051:DoNotDeclareVisibleInstanceFields", Justification = "Consistency with other SymmetricAlgorithm APIs (LegalKeySizesValue, LegalBlockSizesValue")]
         protected KeySizes[] LegalTagSizesValue;
 
         /// <summary>
-        ///     Current tag size (in bits)
+        ///     The TagSizeValue field contains the current authentication tag size used by the authenticated
+        ///     symmetric algorithm, expressed in bits.
         /// </summary>
         [SuppressMessage("Microsoft.Design", "CA1051:DoNotDeclareVisibleInstanceFields", Justification = "Consistency with other SymmetricAlgorithm APIs (KeyValue, BlockValue, etc)")]
         protected int TagSizeValue;
 
         /// <summary>
-        ///     Gets or sets the authenticated data buffer.
-        ///     
-        ///     This data is included in calculations of the authentication tag, but is not included in the
-        ///     ciphertext.  A value of null means that there is no additional authenticated data.
+        ///     <para>
+        ///         Gets or sets the authenticated data buffer.
+        ///     </para>
+        ///     <para>
+        ///         This data is included in calculations of the authentication tag, but is not included in
+        ///         the ciphertext.  A value of null means that there is no additional authenticated data.
+        ///     </para>
         /// </summary>
         [SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays", Justification = "Consistency with the other SymmetricAlgorithm API (Key, IV, etc)")]
         public virtual byte[] AuthenticatedData
@@ -60,12 +75,14 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Get or set the IV (nonce) to use with transorms created with this object.  Note that we
-        ///     override the base implementation because it requires that the nonce equal the block size,
-        ///     while in general authenticated transforms do not.
+        ///     Get or set the IV (nonce) to use with transorms created with this object.
         /// </summary>
+        /// <exception cref="ArgumentNullException">if set to null</exception>
         public override byte[] IV
         {
+            // Note that we override the base implementation because it requires that the nonce equal the
+            // block size, while in general authenticated transforms do not.
+
             get
             {
                 if (IVValue == null)
@@ -86,7 +103,8 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Get the range of allowed sizes (in bits) for authentication tags
+        ///     Gets the ranges of legal sizes for authentication tags produced by this algorithm, expressed
+        ///     in bits.
         /// </summary>
         [SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays", Justification = "Consistency with other SymmetricAlgorithm APIs (LegalKeySizes, LegalBlockSizes)")]
         public virtual KeySizes[] LegalTagSizes
@@ -100,6 +118,8 @@ namespace Security.Cryptography
         ///     find the value of the tag generated on encryption, check the Tag property of the
         ///     IAuthenticatedCryptoTransform encryptor object.
         /// </summary>
+        /// <exception cref="ArgumentNullException">if the tag is set to null</exception>
+        /// <exception cref="ArgumentException">if the tag is not a legal size</exception>
         [SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays", Justification = "Consistency with other SymmetricAlgorithm APIs (Key, IV)")]
         public virtual byte[] Tag
         {
@@ -128,6 +148,7 @@ namespace Security.Cryptography
         /// <summary>
         ///     Get or set the size (in bits) of the authentication tag
         /// </summary>
+        /// <exception cref="ArgumentException">if the value is not a legal tag size</exception>
         public virtual int TagSize
         {
             get { return TagSizeValue; }
@@ -143,7 +164,9 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Create an instance of the default AuthenticatedSymmetricAlgorithm on this machine
+        ///     Creates an instance of the default AuthenticatedSymmetricAlgorithm registered in
+        ///     <see cref="CryptoConfig2" />. By default, this is the <see cref="AuthenticatedAesCng" />
+        ///      algorithm.
         /// </summary>
         public static new AuthenticatedSymmetricAlgorithm Create()
         {
@@ -151,8 +174,11 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Create an instance of a specific AuthenticatedSymmetricAlgorithm
+        ///     Create an instance of the specified AuthenticatedSymmetricAlgorithm type. If the type cannot
+        ///     be found in <see cref="CryptoConfig2" />, Create returns null.
         /// </summary>
+        /// <param name="algorithm">name of the authenticated symmetric algorithm to create</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="algorithm"/> is null</exception>
         public static new AuthenticatedSymmetricAlgorithm Create(string algorithm)
         {
             if (algorithm == null)
@@ -162,8 +188,8 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Create an encryptor using the key, nonce, and authenticated data from the properties of this
-        ///     algorithm.
+        ///     Create an authenticated encryptor using the key, nonce, and authenticated data from the
+        ///     properties of this algorithm object.
         /// </summary>
         public virtual IAuthenticatedCryptoTransform CreateAuthenticatedEncryptor()
         {
@@ -171,24 +197,29 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Create an encryptor using the given key and nonce, and the authenticated data from this
-        ///     algorithm.
+        ///     Create an authenticated encryptor using the specified key and nonce, and using the
+        ///     authenticated data from the property of this algorithm object.
         /// </summary>
+        /// <param name="rgbKey">key to use for the encryption operation</param>
+        /// <param name="rgbIV">nonce to use for the encryption operation</param>
         public virtual IAuthenticatedCryptoTransform CreateAuthenticatedEncryptor(byte[] rgbKey, byte[] rgbIV)
         {
             return CreateAuthenticatedEncryptor(rgbKey, rgbIV, AuthenticatedData);
         }
 
         /// <summary>
-        ///     Create an authenticated crypto transform using the given key, nonce, and authenticated data
+        ///     Create an authenticated encryptor using the specified key, nonce, and authenticated data.
         /// </summary>
+        /// <param name="rgbKey">key to use for the encryption operation</param>
+        /// <param name="rgbIV">nonce to use for the encryption operation</param>
+        /// <param name="rgbAuthenticatedData">optional extra authenticated data to use for the encryption operation</param>
         public abstract IAuthenticatedCryptoTransform CreateAuthenticatedEncryptor(byte[] rgbKey,
                                                                                    byte[] rgbIV,
                                                                                    byte[] rgbAuthenticatedData);
 
         /// <summary>
         ///     Create a decryptor using the key, nonce, authenticated data, and authentication tag from the
-        ///     properties of this algorithm.
+        ///     properties of this algorithm object.
         /// </summary>
         public override ICryptoTransform CreateDecryptor()
         {
@@ -197,8 +228,10 @@ namespace Security.Cryptography
 
         /// <summary>
         ///     Create a decryptor with the given key and nonce, using the authenticated data and
-        ///     authentication tag from the properties of the algorithm.
+        ///     authentication tag from the properties of the algorithm object.
         /// </summary>
+        /// <param name="rgbKey">key to use for the decryption operation</param>
+        /// <param name="rgbIV">nonce to use for the decryption operation</param>
         public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[] rgbIV)
         {
             return CreateDecryptor(rgbKey, rgbIV, AuthenticatedData, Tag);
@@ -206,8 +239,12 @@ namespace Security.Cryptography
 
         /// <summary>
         ///     Create a decryption transform with the given key, nonce, authenticated data, and
-        ///     authentication tag
+        ///     authentication tag.
         /// </summary>
+        /// <param name="rgbKey">key to use for the decryption operation</param>
+        /// <param name="rgbIV">nonce to use for the decryption operation</param>
+        /// <param name="rgbAuthenticatedData">optional extra authenticated data to use for the decryption operation</param>
+        /// <param name="rgbTag">authenticated tag to verify while decrypting</param>
         public abstract ICryptoTransform CreateDecryptor(byte[] rgbKey,
                                                          byte[] rgbIV,
                                                          byte[] rgbAuthenticatedData,
@@ -232,8 +269,9 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Is the tag size (in bits) valid for this implementation of the algorithm
+        ///     Determine if an authentication tag size (in bits) is valid for use with this algorithm.
         /// </summary>
+        /// <param name="tagSize">authentication tag size in bits to check</param>
         public bool ValidTagSize(int tagSize)
         {
             // If we don't have any valid tag sizes, then no tag is of the correct size

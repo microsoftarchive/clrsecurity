@@ -11,13 +11,18 @@ using System.Security.Permissions;
 namespace Security.Cryptography
 {
     /// <summary>
-    ///     Enhanced OID type over the System.Security.Cryptography.Oid type.  Oid2 provides some
-    ///     performance benefits when it is used to lookup OID information since it can do more directed
-    ///     queries than Oid does.  It also exposes additional information about the OID, such as group and
-    ///     algortihm mappings for CAPI and CNG.
-    ///     
-    ///     Constructing an Oid2 object does not do lookup as constructing an Oid object does - instead
-    ///     specific queries must be issued in order to do lookups on OID inputs.
+    ///     <para>
+    ///         Oid2 is an enhanced OID type over the <see cref="Oid" /> type.  Oid2 provides some
+    ///         performance benefits when it is used to lookup OID information since it can do more directed
+    ///         queries than Oid does.  It also exposes additional information about the OID, such as group
+    ///         and algortihm mappings for CAPI and CNG.
+    ///     </para>
+    ///     <para>
+    ///         One notable difference between Oid2 and Oid is that Oid2 will never query for information
+    ///         about an Oid unless specifically instructed to via a call to EnumerateOidInformation or one of
+    ///         the FindBy methods. Simply constructing an Oid2 type does not trigger a lookup on information
+    ///         not provided.
+    ///     </para>
     /// </summary>
     public sealed class Oid2
     {
@@ -31,8 +36,14 @@ namespace Security.Cryptography
         private CngAlgorithm m_cngExtraAlgorithm;
 
         /// <summary>
-        ///     Create an Oid2 object for an OID with no algorithm representation and in no particular group
+        ///     Constructs an Oid2 object with the given value and friendly name. No lookup is done for
+        ///     further information on this OID. It is assigned a group of AllGroups and no algorithm mapping.
         /// </summary>
+        /// <param name="oid">value of this OID</param>
+        /// <param name="friendlyName">friendly name for the OID</param>
+        /// <exception cref="ArgumentNullException">
+        ///     if <paramref name="oid" /> or <paramref name="friendlyName"/> are null
+        /// </exception>
         public Oid2(string oid, string friendlyName)
             : this(oid, friendlyName, OidGroup.AllGroups)
         {
@@ -40,8 +51,15 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Create an Oid2 object for an OID with no algorithm representation
+        ///     Constructs an Oid2 object with the given value and friendly name belonging to a specific
+        ///     group. No lookup is done for further information on this OID. It has no algorithm mapping.
         /// </summary>
+        /// <param name="oid">value of this OID</param>
+        /// <param name="friendlyName">friendly name for the OID</param>
+        /// <param name="group">group the OID belongs to</param>
+        /// <exception cref="ArgumentNullException">
+        ///     if <paramref name="oid" /> or <paramref name="friendlyName"/> are null
+        /// </exception>
         public Oid2(string oid, string friendlyName, OidGroup group)
             : this (oid, friendlyName, group, null, null)
         {
@@ -49,8 +67,18 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Create an Oid2 object for an OID which has no CAPI algorithm representation
+        ///     Constructs an Oid2 object with the given value and friendly name belonging to a specific
+        ///     group. No lookup is done for further information on this OID. It has no CAPI algorithm
+        ///     mapping, but does have optional CNG algorithm mappings.
         /// </summary>
+        /// <param name="oid">value of this OID</param>
+        /// <param name="friendlyName">friendly name for the OID</param>
+        /// <param name="group">group the OID belongs to</param>
+        /// <param name="cngAlgorithm">CNG algorithm that this OID represents</param>
+        /// <param name="extraCngAlgorithm">additional CNG algorithm this OID represents</param>
+        /// <exception cref="ArgumentNullException">
+        ///     if <paramref name="oid" /> or <paramref name="friendlyName"/> are null
+        /// </exception>
         public Oid2(string oid,
                     string friendlyName,
                     OidGroup group,
@@ -70,8 +98,19 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Create an Oid2 object for an OID which can have both a CAPI and CNG algorithm representation
+        ///     Constructs an Oid2 object with the given value and friendly name belonging to a specific
+        ///     group. No lookup is done for further information on this OID. It has both a CAPI algorithm
+        ///     mapping and optional CNG algorithm mappings.
         /// </summary>
+        /// <param name="oid">value of this OID</param>
+        /// <param name="friendlyName">friendly name for the OID</param>
+        /// <param name="group">group the OID belongs to</param>
+        /// <param name="capiAlgorithm">CAPI algorithm ID that this OID represents</param>
+        /// <param name="cngAlgorithm">CNG algorithm that this OID represents</param>
+        /// <param name="extraCngAlgorithm">additional CNG algorithm this OID represents</param>
+        /// <exception cref="ArgumentNullException">
+        ///     if <paramref name="oid" /> or <paramref name="friendlyName"/> are null
+        /// </exception>
         public Oid2(string oid,
                     string friendlyName,
                     OidGroup group,
@@ -129,36 +168,62 @@ namespace Security.Cryptography
         // Acccessor properties
         //
 
+        /// <summary>
+        ///     Get the CAPI algorithm ID represented by this OID.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        ///     if HasAlgorithmId is false
+        /// </exception>
         public int AlgorithmId
         {
             get { return m_algorithmId.Value; }
         }
 
+        /// <summary>
+        ///     Get the CNG algorithm that this OID represents.
+        /// </summary>
         public CngAlgorithm CngAlgorithm
         {
             get { return m_cngAlgorithm; }
         }
 
+        /// <summary>
+        ///     Get an additional CNG algorithm that this OID represents.
+        /// </summary>
         public CngAlgorithm CngExtraAlgorithm
         {
             get { return m_cngExtraAlgorithm; }
         }
 
+        /// <summary>
+        ///     Get the friendly name of the OID.
+        /// </summary>
         public string FriendlyName
         {
             get { return m_name; }
         }
 
+        /// <summary>
+        ///     Get the OID group that this OID belongs to.
+        /// </summary>
         public OidGroup Group
         {
             get { return m_group; }
         }
 
+        /// <summary>
+        ///     Determines if the OID has a CAPI algorithm ID that it maps to, available in the AlgorithmId
+        ///     property. This property does not check to see if the OID has matching CNG algorithms, which
+        ///     can be checked by checking the CngAlgorithm property for null.
+        /// </summary>
         public bool HasAlgorithmId
         {
             get { return m_algorithmId.HasValue; }
         }
 
+        /// <summary>
+        ///     Get the string representation of the OID.
+        /// </summary>
         public string Value
         {
             get { return m_oid; }
@@ -169,7 +234,8 @@ namespace Security.Cryptography
         //
 
         /// <summary>
-        ///     Enumerate all the OIDs on the machine
+        ///     This overload of EnumerateOidInformation returns an enumerator containing an Oid2 object for
+        ///     every OID registered regardless of group.
         /// </summary>
         public static IEnumerable<Oid2> EnumerateOidInformation()
         {
@@ -177,8 +243,10 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Enumerate the OIDs registered as belonging to a certain group
+        ///     This overload of EnumerateOidInformation returns an enumerator containing an Oid2 object for
+        ///     every OID registered as belonging to a specific OID group.
         /// </summary>
+        /// <param name="group">OID group to enumerate, AllGroups to enumerate every OID</param>
         [SecurityCritical]
         [SecurityTreatAsSafe]
         public static IEnumerable<Oid2> EnumerateOidInformation(OidGroup group)
@@ -190,25 +258,40 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Search for an OID based upon its friendly name, looking in all groups
+        ///     This overload of FindByFriendlyName searches for any OID registered on the local machine with
+        ///     the specified friendly name. It looks in all OID groups for an OID matching the name, but does
+        ///     not look in the Active Directory for a matching OID. If no match is found, null is returned.
         /// </summary>
+        /// <param name="friendlyName">name of the OID to search for</param>
         public static Oid2 FindByFriendlyName(string friendlyName)
         {
             return FindByFriendlyName(friendlyName, OidGroup.AllGroups);
         }
 
         /// <summary>
-        ///     Search for an OID based upon its friendly name, looking only in a specific group
+        ///     This overload of FindByFriendlyName searches for any OID registered on the local machine with
+        ///     the specified friendly name. It looks only in the specified OID groups for an OID matching the
+        ///     name, and does not look in the Active Directory for a matching OID. If no match is found, null
+        ///     is returned.
         /// </summary>
+        /// <param name="friendlyName">name of the OID to search for</param>
+        /// <param name="group">OID group to enumerate, AllGroups to enumerate every OID</param>
         public static Oid2 FindByFriendlyName(string friendlyName, OidGroup group)
         {
             return FindByFriendlyName(friendlyName, group, false);
         }
 
         /// <summary>
-        ///     Search for an OID based upon its friendly name, looking only in a specific group, optionally
-        ///     looking for the value in Active Directory.
+        ///     This overload of FindByFriendlyName searches for any OID registered on the local machine with
+        ///     the specified friendly name. It looks only in the specified OID groups for an OID matching the
+        ///     name, and can optionally look in the Active Directory for a matching OID. If no match is
+        ///     found, null is returned.
         /// </summary>
+        /// <param name="friendlyName">name of the OID to search for</param>
+        /// <param name="group">OID group to enumerate, AllGroups to enumerate every OID</param>
+        /// <param name="useNetworkLookup">
+        ///     true to look in the Active Directory for a match, false to skip network lookup
+        /// </param>
         [SecurityCritical]
         [SecurityTreatAsSafe]
         public static Oid2 FindByFriendlyName(string friendlyName, OidGroup group, bool useNetworkLookup)
@@ -225,25 +308,40 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Search for an OID based upon its OID value, looking in all groups
+        ///     This overload of FindByValue searches for any OID registered on the local machine with the
+        ///     specified OID value. It looks in all OID groups for an OID matching the value, but does not
+        ///     look in the Active Directory for a matching OID. If no match is found, null is returned.
         /// </summary>
+        /// <param name="oid">oid to search for</param>
         public static Oid2 FindByValue(string oid)
         {
             return FindByValue(oid, OidGroup.AllGroups);
         }
 
         /// <summary>
-        ///     Search for an OID based upon its OID value, looking only in a specific group
+        ///     This overload of FindByValue searches for any OID registered on the local machine with the
+        ///     specified value. It looks only in the specified OID groups for an OID matching the value, and
+        ///     does not look in the Active Directory for a matching OID. If no match is found, null is
+        ///     returned.
         /// </summary>
+        /// <param name="oid">oid to search for</param>
+        /// <param name="group">OID group to enumerate, AllGroups to enumerate every OID</param>
         public static Oid2 FindByValue(string oid, OidGroup group)
         {
             return FindByValue(oid, group, false);
         }
 
         /// <summary>
-        ///     Search for an OID based upon its OID value, looking only in a specific group, optionally
-        ///     looking for the value in Active Directory.
+        ///     This overload of FindByValue searches for any OID registered on the local machine with the
+        ///     specified value. It looks only in the specified OID groups for an OID matching the value, and
+        ///     can optionally look in the Active Directory for a matching OID. If no match is found, null is
+        ///     returned.
         /// </summary>
+        /// <param name="oid">oid to search for</param>
+        /// <param name="group">OID group to enumerate, AllGroups to enumerate every OID</param>
+        /// <param name="useNetworkLookup">
+        ///     true to look in the Active Directory for a match, false to skip network lookup
+        /// </param>
         [SecurityCritical]
         [SecurityTreatAsSafe]
         public static Oid2 FindByValue(string oid, OidGroup group, bool useNetworkLookup)
@@ -260,10 +358,14 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Register an OID on the machine.  This requires the user to be an administrator on the
-        ///     machine, and also may not take effect within the current process if the registered OIDs have
-        ///     already been read in this process by CAPI.
+        ///     Register the OID on the local machine, so that later processes can query for the OID and
+        ///     include it in enumerations. This method requires that the caller be fully trusted, and that
+        ///     the user context that the calling application be run under be an Administrator on the machine.
+        ///     Updating the registration table may have no effect on the current process, if Windows has
+        ///     already read them. Instead, the process may need to be restarted to reflect the registration
+        ///     changes. This overload of Register places the OID after the built in OIDs.
         /// </summary>
+        /// <permission cref="PermissionSet">The immediate caller of this API must be fully trusted</permission>
         [SecurityCritical]
         [PermissionSet(SecurityAction.LinkDemand, Unrestricted = true)]
         public void Register()
@@ -272,10 +374,16 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Register an OID on the machine.  This requires the user to be an administrator on the
-        ///     machine, and also may not take effect within the current process if the registered OIDs have
-        ///     already been read in this process by CAPI.
+        ///     Register the OID on the local machine, so that later processes can query for the OID and
+        ///     include it in enumerations. This method requires that the caller be fully trusted, and that
+        ///     the user context that the calling application be run under be an Administrator on the machine.
+        ///     Updating the registration table may have no effect on the current process, if Windows has
+        ///     already read them. Instead, the process may need to be restarted to reflect the registration
+        ///     changes. This overload of Register can places the OID either before or after the built in OIDs
+        ///     depending on the registration options.
         /// </summary>
+        /// <permission cref="PermissionSet">The immediate caller of this API must be fully trusted</permission>
+        /// <param name="registrationOptions">settings to register the OID with</param>
         [SecurityCritical]
         [PermissionSet(SecurityAction.LinkDemand, Unrestricted = true)]
         public void Register(OidRegistrationOptions registrationOptions)
@@ -284,11 +392,25 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Ensure that the OID -> ALG_ID mapping for the SHA2 algorithms is registered in a way that the
-        ///     CLR can understand it for enabling RSA-SHA2 signatures.  Note that this operation requires
-        ///     the user to be an administrator, and may also not take effect in the current process if the
-        ///     registered OID information has already been read by CAPI.
+        ///     <para>
+        ///         On Windows 2003, the default OID -> algorithm ID mappings for the SHA2 family of hash
+        ///         algorithms are not setup in a way that the .NET Framework v3.5 SP1 can understand them
+        ///         when creating RSA-SHA2 signatures. This method can be used to update the registrations on
+        ///         Windows 2003 so that RSA-SHA2 signatures work as expected.
+        ///    </para>
+        ///    <para>
+        ///         To call this method, the calling code must be fully trusted and running as an
+        ///         Administrator on the machine. If OID tables have already been read for the process, then
+        ///         the process may need to be restarted for the registration to take effect. Therefore, it is
+        ///         recommended to use this method in a setup program or as the first line of code in your
+        ///         application.
+        ///     </para>
+        ///     <para>
+        ///         While not required, this method will work on other versions of Windows and the .NET
+        ///         Framework. 
+        ///     </para>
         /// </summary>
+        /// <permission cref="PermissionSet">This API requires that its immediate caller be fully trusted</permission>
         [SecurityCritical]
         [PermissionSet(SecurityAction.LinkDemand, Unrestricted = true)]
         public static void RegisterSha2OidInformationForRsa()
@@ -327,7 +449,9 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Convert an Oid2 into an Oid object
+        ///     Convert the Oid2 object into an Oid object that is usable by APIs in the .NET Framework which
+        ///     expect an Oid rather than an Oid2. This method only transfers the OID value and friendly name
+        ///     to the new Oid object. Group and algorithm mappings are lost.
         /// </summary>
         public Oid ToOid()
         {
@@ -366,10 +490,14 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Unregister the OID from the machine.  This requires the user to be an administrator on the
-        ///     machine, and also may not take effect within the current process if the registered OIDs have
-        ///     already been read in this process by CAPI.
+        ///     Revert the registration of this OID, which may have been registered with one of the Register
+        ///     overloads. As with OID registration, this method requires that the caller be fully trusted,
+        ///     and that the user context that the calling application be run under be an Administrator on the
+        ///     machine. Updating the registration table may have no effect on the current process, if Windows
+        ///     has already read them. Instead, the process may need to be restarted to reflect the
+        ///     registration changes.
         /// </summary>
+        /// <permission cref="PermissionSet">This API requires that its immediate caller be fully trusted</permission>
         [SecurityCritical]
         [PermissionSet(SecurityAction.LinkDemand, Unrestricted = true)]
         public void Unregister()

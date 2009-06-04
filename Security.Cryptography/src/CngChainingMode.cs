@@ -1,12 +1,15 @@
 // Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
+using System.Security.Cryptography;
 using Security.Cryptography.Properties;
 
 namespace Security.Cryptography
 {
     /// <summary>
-    ///     Pseudo-enum for chaining modes used with CNG, in the same style as CngAlgorithm and CngProvider
+    ///     The CngChainingMode class provides a pseudo-enumeration similar to <see cref="CngAlgorithm" />
+    ///     which provides an enumeration over chaining modes that CNG supports. Several of the enumeration
+    ///     values are the CNG equivalents of the <see cref="CipherMode"/> framework enumeration.
     /// </summary>
     [Serializable]
     public sealed class CngChainingMode : IEquatable<CngChainingMode>
@@ -19,6 +22,14 @@ namespace Security.Cryptography
 
         private string m_chainingMode;
 
+        /// <summary>
+        ///     Creates a new CngChainingMode for the chaining mode string. This constructor should generally
+        ///     not be used, and instead the built in values for the standard chaining modes should be
+        ///     preferred.
+        /// </summary>
+        /// <param name="chainingMode">chaining mode to create a CngChainingMode object for</param>
+        /// <exception cref="ArgumentException">if <paramref name="chainingMode" /> is empty</exception>
+        /// <exception cref="ArgumentNullException">if <paramref name="chainingMode" /> is null</exception>
         public CngChainingMode(string chainingMode)
         {
             if (chainingMode == null)
@@ -29,6 +40,9 @@ namespace Security.Cryptography
             m_chainingMode = chainingMode;
         }
 
+        /// <summary>
+        ///     Get the string which represents this chaining mode to CNG
+        /// </summary>
         public string ChainingMode
         {
             get { return m_chainingMode; }
@@ -83,6 +97,10 @@ namespace Security.Cryptography
         // Well known chaining modes
         //
 
+        /// <summary>
+        ///     Gets a CngChainingMode object for the cipher block chaining mode. This is equivalent to
+        ///     CipherMode.Cbc in the managed enumeration.
+        /// </summary>
         public static CngChainingMode Cbc
         {
             get
@@ -96,6 +114,10 @@ namespace Security.Cryptography
             }
         }
 
+        /// <summary>
+        ///     Gets a CngChainingMode object for the counter with cipher block chaining MAC authenticated
+        ///     chaining mode.
+        /// </summary>
         public static CngChainingMode Ccm
         {
             get
@@ -109,6 +131,10 @@ namespace Security.Cryptography
             }
         }
 
+        /// <summary>
+        ///     Gets a CngChainingMode object for the cipher feedback mode. This is equivalent to
+        ///     CipherMode.Cfb in the managed enumeration.
+        /// </summary>
         public static CngChainingMode Cfb
         {
             get
@@ -122,6 +148,10 @@ namespace Security.Cryptography
             }
         }
 
+        /// <summary>
+        ///     Gets a CngChainingMode object for the electronic codebook mode. This is equivalent to
+        ///     CipherMode.Ecb in the managed enumeration.
+        /// </summary>
         public static CngChainingMode Ecb
         {
             get
@@ -135,6 +165,10 @@ namespace Security.Cryptography
             }
         }
 
+        /// <summary>
+        ///     Gets a CngChainingMode object for the counter with Galois/counter mode authenticated chaining
+        ///     mode.
+        /// </summary>
         public static CngChainingMode Gcm
         {
             get

@@ -14,10 +14,37 @@ using Security.Cryptography.Properties;
 namespace Security.Cryptography
 {
     /// <summary>
-    ///     Implementation of the RSA algorithm using the NCrypt layer of CNG.
-    ///     
-    ///     Note that this type is not a drop in replacement for RSACryptoServiceProvider, and follows an
-    ///     API pattern more similar to ECDsaCng than RSACryptoServiceProvider.
+    ///     <para>
+    ///         The RSACng class provides a wrapper for the CNG implementation of the RSA algorithm. The
+    ///         interface provided by RSACng is derived from the <see cref="RSA" /> base type, and not from
+    ///         the <see cref="RSACryptoServiceProvider" /> class. Consequently, it is not a drop in
+    ///         replacement for existing uses of RSACryptoServiceProvider.
+    ///     </para>
+    ///     <para>
+    ///         RSACng uses a programming model more similar to the <see cref="ECDsaCng" /> class than
+    ///         RSACryptoServiceProvider. For instance, unlike RSACryptoServiceProvider which has a key
+    ///         directly tied into the operations of the type itself, the key used by RsaCng is managed by a
+    ///         separate <see cref="CngKey" /> object. Additionally, operations such as signing and verifying
+    ///         signatures take their parameters from a set of properties set on the RSACng object, similar to
+    ///         how ECDsaCng uses properties of its object to control the signing and verification operations.
+    ///     </para>
+    ///     <para>    
+    ///         RSACng uses the NCrypt layer of CNG to do its work, and requires Windows Vista and the .NET
+    ///         Framework 3.5.
+    ///     </para>
+    ///     <para>
+    ///         Example usage:
+    ///         <example>
+    ///             // Create an RSA-SHA256 signature using the key stored in "MyKey"
+    ///             byte[] dataToSign = Encoding.UTF8.GetBytes("Data to sign");
+    ///             using (CngKey signingKey = CngKey.Open("MyKey");
+    ///             using (RSACng rsa = new RSACng(signingKey))
+    ///             {
+    ///                 rsa.SignatureHashAlgorithm = CngAlgorithm.Sha256;
+    ///                 return rsa.SignData(dataToSign);
+    ///             }
+    ///         </example>
+    ///     </para>
     /// </summary>
     [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "RSA", Justification = "This is for consistency with the existing RSACryptoServiceProvider type")]
     public sealed class RSACng : RSA, ICngAsymmetricAlgorithm
@@ -42,7 +69,7 @@ namespace Security.Cryptography
         private int m_signatureSaltBytes = 20;
 
         /// <summary>
-        ///     Create an RSACng algorithm with a random 2048 bit key
+        ///     Create an RSACng algorithm with a random 2048 bit key pair.
         /// </summary>
         public RSACng() : this(2048)
         {
@@ -50,8 +77,12 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Create an RSACng algorithm with a random key of the specified size
+        ///     Creates a new RSACng object that will use a randomly generated key of the specified size.
+        ///     Valid key sizes range from 384 to 16384 bits, in increments of 8. It's suggested that a
+        ///     minimum size of 2048 bits be used for all keys.
         /// </summary>
+        /// <param name="keySize">size of hte key to generate, in bits</param>
+        /// <exception cref="CryptographicException">if <paramref name="keySize" /> is not valid</exception>
         public RSACng(int keySize)
         {
             LegalKeySizesValue = s_legalKeySizes;
@@ -59,8 +90,12 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Construct an RSACng algorithm with the specified key
+        ///     Creates a new RSACng object that will use the specified key. The key's
+        ///     <see cref="CngKey.AlgorithmGroup" /> must be Rsa.
         /// </summary>
+        /// <param name="key">key to use for RSA operations</param>
+        /// <exception cref="ArgumentException">if <paramref name="key" /> is not an RSA key</exception>
+        /// <exception cref="ArgumentNullException">if <paramref name="key" /> is null</exception>
         [SecurityCritical]
         [SecurityTreatAsSafe]
         public RSACng(CngKey key)
@@ -76,9 +111,12 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Hash algorithm to use for padding when encrypting or decrypting. This is only used with
-        ///     AsymmetricPaddingMode.Oaep.
+        ///     Sets the hash algorithm to use when encrypting or decrypting data using the OAEP padding
+        ///     method. This property is only used if data is encrypted or decrypted and the
+        ///     EncryptionPaddingMode is set to AsymmetricEncryptionPaddingMode.Oaep. The default value is
+        ///     Sha256.
         /// </summary>
+        /// <exception cref="ArgumentNullException">if EncryptionHashAlgorithm is set to null</exception>
         public CngAlgorithm EncryptionHashAlgorithm
         {
             get { return m_encryptionHashAlgorithm; }
@@ -93,8 +131,10 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Padding to use when encrypting or decrypting
+        ///     Sets the padding mode to use when encrypting or decrypting data. The default value is
+        ///     AsymmetricPaddingMode.Oaep.
         /// </summary>
+        /// <exception cref="ArgumentNullException">if EncryptionPaddingMOde is set to null</exception>
         public AsymmetricPaddingMode EncryptionPaddingMode
         {
             get { return m_encryptionPaddingMode; }
@@ -112,8 +152,16 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Key that we're using for RSA operations
+        ///     Gets the key that will be used by the RSA object for any cryptographic operation that it uses.
+        ///     This key object will be disposed if the key is reset, for instance by changing the KeySize
+        ///     property, using ImportParamers to create a new key, or by Disposing of the parent RSA object.
+        ///     Therefore, you should make sure that the key object is no longer used in these scenarios. This
+        ///     object will not be the same object as the CngKey passed to the RSACng constructor if that
+        ///     constructor was used, however it will point at the same CNG key.
         /// </summary>
+        /// <permission cref="SecurityPermission">
+        ///     SecurityPermission/UnmanagedCode is required to read this property.
+        /// </permission>
         public CngKey Key
         {
             [SecurityCritical]
@@ -171,6 +219,9 @@ namespace Security.Cryptography
             get { return Key.Handle; }
         }
 
+        /// <summary>
+        ///     Returns "RSA-PKCS1-KeyEx". This property should not be used.
+        /// </summary>
         public override string KeyExchangeAlgorithm
         {
             get { return "RSA-PKCS1-KeyEx";  }
@@ -187,14 +238,19 @@ namespace Security.Cryptography
             get { return Key.Provider; }
         }
 
+        /// <summary>
+        ///     Returns "http://www.w3.org/2000/09/xmldsig#rsa-sha1". This property should not be used.
+        /// </summary>
         public override string SignatureAlgorithm
         {
             get { return "http://www.w3.org/2000/09/xmldsig#rsa-sha1"; }
         }
 
         /// <summary>
-        ///     Hash algorithm that will be used when signing and verifying data
+        ///     Gets or sets the hash algorithm to use when signing or verifying data. The default value is
+        ///     Sha256.
         /// </summary>
+        /// <exception cref="ArgumentNullException">if SignatureHashAlgorithm is set to null</exception>
         public CngAlgorithm SignatureHashAlgorithm
         {
             get { return m_signatureHashAlgorithm; }
@@ -209,8 +265,12 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Padding mode to use for signature generation and verification
+        ///     Gets or sets the padding mode to use when encrypting or decrypting data. The default value is
+        ///     AsymmetricPaddingMode.Pkcs1.
         /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     if SignaturePaddingMode is set to a mode other than Pkcs1 or Pss
+        /// </exception>
         public AsymmetricPaddingMode SignaturePaddingMode
         {
             get { return m_signaturePaddingMode; }
@@ -228,9 +288,14 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Number of bytes of salt to use in signature padding.
-        ///     This is only used for SignaturePaddingMode.Pss
+        ///     Gets or sets the number of bytes of salt to use when signing data or verifying a signature
+        ///     using the PSS padding mode. This property is only used if data is being signed or verified and
+        ///     the SignaturePaddingMode is set to AsymmetricEncryptionPaddingMode.Pss. The default value is
+        ///     20 bytes.
         /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     if SignatureSaltBytes is set to a negative number
+        /// </exception>
         public int SignatureSaltBytes
         {
             get { return m_signatureSaltBytes; }
@@ -306,6 +371,13 @@ namespace Security.Cryptography
         // Key import and export
         //
 
+        /// <summary>
+        ///     Exports the key used by the RSA object into an RSAParameters object.
+        /// </summary>
+        /// <permission cref="KeyContainerPermission">
+        ///      If the includePrivateParameters parameter is true and the CngKey is not ephemeral,
+        ///      KeyContainerPermission will be demanded.
+        /// </permission>
         [SecurityCritical]
         [SecurityTreatAsSafe]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of SizeOf")]
@@ -384,6 +456,28 @@ namespace Security.Cryptography
             return rsaParams;
         }
 
+        /// <summary>
+        ///     <para>
+        ///         ImportParameters will replace the existing key that RSACng is working with by creating a
+        ///         new CngKey for the parameters structure. If the parameters structure contains only an
+        ///         exponent and modulus, then only a public key will be imported. If the parameters also
+        ///         contain P and Q values, then a full key pair will be imported.
+        ///     </para>
+        ///     <para>
+        ///         The default KSP used by RSACng does not support importing full RSA key pairs on Windows
+        ///         Vista. If the ImportParameters method is called with a full key pair, the operation will
+        ///         fail with a CryptographicException stating that the operation was invalid. Other KSPs may
+        ///         have similar restrictions. To work around this, make sure to only import public keys when
+        ///         using the default KSP.
+        ///     </para>
+        /// </summary>
+        /// <exception cref="ArgumentException">
+        ///     if <paramref name="parameters" /> contains neither an exponent nor a modulus
+        /// </exception>
+        /// <exception cref="CryptographicException">
+        ///     if <paramref name="parameters" /> is not a valid RSA key or if <paramref name="parameters"
+        ///     /> is a full key pair and the default KSP is used
+        /// </exception>
         [SecurityCritical]
         [SecurityTreatAsSafe]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of SizeOf")]
@@ -469,6 +563,16 @@ namespace Security.Cryptography
         // Encryption and decryption
         //
 
+        /// <summary>
+        ///     DecryptValue decrypts the input data using the padding mode specified in the
+        ///     EncryptionPaddingMode property. The return value is the decrypted data.
+        /// </summary>
+        /// <param name="rgb">encrypted data to decrypt</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="rgb" /> is null</exception>
+        /// <exception cref="CryptographicException">if <paramref name="rgb" /> could not be decrypted</exception>
+        /// <permission cref="KeyContainerPermission">
+        ///      This method requires KeyContainerPermission to the key in use if it is not ephemeral.
+        /// </permission>
         [SecurityCritical]
         [SecurityTreatAsSafe]
         public override byte[] DecryptValue(byte[] rgb)
@@ -503,6 +607,13 @@ namespace Security.Cryptography
             };
         }
 
+        /// <summary>
+        ///     EncryptValue encrypts the input data using the padding mode specified in the
+        ///     EncryptionPaddingMode property. The return value is the encrypted data.
+        /// </summary>
+        /// <param name="rgb">data to encrypt</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="rgb" /> is null</exception>
+        /// <exception cref="CryptographicException">if <paramref name="rgb" /> could not be decrypted</exception>
         [SecurityCritical]
         [SecurityTreatAsSafe]
         public override byte[] EncryptValue(byte[] rgb)
@@ -527,8 +638,17 @@ namespace Security.Cryptography
         //
 
         /// <summary>
-        ///     Sign data after hashing it with the SignatureHashAlgorithm
+        ///     SignData signs the given data after hashing it with the SignatureHashAlgorithm algorithm.
         /// </summary>
+        /// <param name="data">data to sign</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="data" /> is null</exception>
+        /// <exception cref="CryptographicException">if <paramref name="data" /> could not be signed</exception>
+        /// <exception cref="InvalidOperationException">
+        ///     if SignatureHashAlgorithm is not MD5, SHA-1, SHA-256, SHA-384, or SHA-512
+        /// </exception>
+        /// <permission cref="KeyContainerPermission">
+        ///      This method will demand KeyContainerPermission if the key being used is not ephemeral.
+        /// </permission>
         public byte[] SignData(byte[] data)
         {
             if (data == null)
@@ -538,8 +658,23 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Sign data after hashing it with the SignatureHashAlgorithm
+        ///     SignData signs the given data after hashing it with the SignatureHashAlgorithm algorithm.
         /// </summary>
+        /// <param name="data">data to sign</param>
+        /// <param name="offset">offset into the data that the signature should begin covering</param>
+        /// <param name="count">number of bytes to include in the signed data</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="data" /> is null</exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     if <paramref name="offset" /> or <paramref name="count" /> are negative, or if
+        ///     <paramref name="count" /> specifies more bytes than are available in <paramref name="data" />.
+        /// </exception>
+        /// <exception cref="CryptographicException">if <paramref name="data" /> could not be signed</exception>
+        /// <exception cref="InvalidOperationException">
+        ///     if SignatureHashAlgorithm is not MD5, SHA-1, SHA-256, SHA-384, or SHA-512
+        /// </exception>
+        /// <permission cref="KeyContainerPermission">
+        ///      This method will demand KeyContainerPermission if the key being used is not ephemeral.
+        /// </permission>
         public byte[] SignData(byte[] data, int offset, int count)
         {
             if (data == null)
@@ -559,8 +694,17 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Sign data after hashing it with the SignatureHashAlgorithm
+        ///     SignData signs the given data after hashing it with the SignatureHashAlgorithm algorithm.
         /// </summary>
+        /// <param name="data">data to sign</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="data" /> is null</exception>
+        /// <exception cref="CryptographicException">if <paramref name="data" /> could not be signed</exception>
+        /// <exception cref="InvalidOperationException">
+        ///     if SignatureHashAlgorithm is not MD5, SHA-1, SHA-256, SHA-384, or SHA-512
+        /// </exception>
+        /// <permission cref="KeyContainerPermission">
+        ///      This method will demand KeyContainerPermission if the key being used is not ephemeral.
+        /// </permission>
         public byte[] SignData(Stream data)
         {
             if (data == null)
@@ -577,14 +721,33 @@ namespace Security.Cryptography
         ///     Sign data which was hashed using the SignatureHashAlgorithm; if the algorithm used to hash
         ///     the data was different, use the SignHash(byte[], CngAlgorithm) overload instead.
         /// </summary>
+        /// <param name="hash">hash to sign</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="hash" /> is null</exception>
+        /// <exception cref="CryptographicException">if <paramref name="data" /> could not be signed</exception>
+        /// <exception cref="InvalidOperationException">
+        ///     if SignatureHashAlgorithm is not MD5, SHA-1, SHA-256, SHA-384, or SHA-512
+        /// </exception>
+        /// <permission cref="KeyContainerPermission">
+        ///      This method will demand KeyContainerPermission if the key being used is not ephemeral.
+        /// </permission>
         public byte[] SignHash(byte[] hash)
         {
             return SignHash(hash, SignatureHashAlgorithm);
         }
 
         /// <summary>
-        ///     Sign already hashed data, specifying the algorithm it was hashed with
+        ///     Sign already hashed data, specifying the algorithm it was hashed with.  This method does not
+        ///     use the SignatureHashAlgorithm property.
         /// </summary>
+        /// <param name="hash">hash to sign</param>
+        /// <param name="hashAlgorithm">algorithm <paramref name="hash" /> was signed with</param>
+        /// <exception cref="ArgumentNullException">
+        ///     if <paramref name="hash" /> or <paramref name="hashAlgorithm"/> are null
+        ///  </exception>
+        /// <exception cref="CryptographicException">if <paramref name="data" /> could not be signed</exception>
+        /// <permission cref="KeyContainerPermission">
+        ///      This method will demand KeyContainerPermission if the key being used is not ephemeral.
+        /// </permission>
         [SecurityCritical]
         [SecurityTreatAsSafe]
         public byte[] SignHash(byte[] hash, CngAlgorithm hashAlgorithm)
@@ -625,8 +788,18 @@ namespace Security.Cryptography
         //
 
         /// <summary>
-        ///     Verify data which was signed with the SignatureHashAlgorithm
+        ///     VerifyData verifies that the given signature matches given data after hashing it with the
+        ///     SignatureHashAlgorithm algorithm.
         /// </summary>
+        /// <param name="data">data to verify</param>
+        /// <param name="signature">signature of the data</param>
+        /// <exception cref="ArgumentNullException">
+        ///     if <paramref name="data" /> or <paramref name="signature" /> are null
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     if SignatureHashAlgorithm is not MD5, SHA-1, SHA-256, SHA-384, or SHA-512
+        /// </exception>
+        /// <returns>true if the signature verifies for the data, false if it does not</returns>
         public bool VerifyData(byte[] data, byte[] signature)
         {
             if (data == null)
@@ -636,8 +809,24 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Verify data which was signed with the SignatureHashAlgorithm
+        ///     VerifyData verifies that the given signature matches given data after hashing it with the
+        ///     SignatureHashAlgorithm algorithm.
         /// </summary>
+        /// <param name="data">data to verify</param>
+        /// <param name="offset">offset into the data that the signature should begin covering</param>
+        /// <param name="count">number of bytes to include in the signed data</param>
+        /// <param name="signature">signature of the data</param>
+        /// <exception cref="ArgumentNullException">
+        ///     if <paramref name="data" /> or <paramref name="signature" /> are null
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     if <paramref name="offset" /> or <paramref name="count" /> are negative, or if
+        ///     <paramref name="count" /> specifies more bytes than are available in <paramref name="data" />.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     if SignatureHashAlgorithm is not MD5, SHA-1, SHA-256, SHA-384, or SHA-512
+        /// </exception>
+        /// <returns>true if the signature verifies for the data, false if it does not</returns>
         public bool VerifyData(byte[] data, int offset, int count, byte[] signature)
         {
             if (data == null)
@@ -659,8 +848,18 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Verify data which was signed with the SignatureHashAlgorithm
+        ///     VerifyData verifies that the given signature matches given data after hashing it with the
+        ///     SignatureHashAlgorithm algorithm.
         /// </summary>
+        /// <param name="data">data to verify</param>
+        /// <param name="signature">signature of the data</param>
+        /// <exception cref="ArgumentNullException">
+        ///     if <paramref name="data" /> or <paramref name="signature" /> are null
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     if SignatureHashAlgorithm is not MD5, SHA-1, SHA-256, SHA-384, or SHA-512
+        /// </exception>
+        /// <returns>true if the signature verifies for the data, false if it does not</returns>
         public bool VerifyData(Stream data, byte[] signature)
         {
             if (data == null)
@@ -680,14 +879,32 @@ namespace Security.Cryptography
         ///     different hash algorithm was used to hash the data use the VerifyHash(byte[], byte[],
         ///     CngAlgorithm) overload instead.
         /// </summary>
+        /// <param name="hash">hash to verify</param>
+        /// <param name="signature">signature of the data</param>
+        /// <exception cref="ArgumentNullException">
+        ///     if <paramref name="hash" /> or <paramref name="signature" /> are null
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     if SignatureHashAlgorithm is not MD5, SHA-1, SHA-256, SHA-384, or SHA-512
+        /// </exception>
+        /// <returns>true if the signature verifies for the hash, false if it does not</returns>
         public bool VerifyHash(byte[] hash, byte[] signature)
         {
             return VerifyHash(hash, signature, SignatureHashAlgorithm);
         }
 
         /// <summary>
-        ///     Verify data which was signed and hashed with the given hash algorithm
+        ///     Verify data which was signed and hashed with the given hash algorithm.  This overload does
+        ///     not use the SignatureHashAlgorithm property.
         /// </summary>
+        /// <param name="hash">hash to verify</param>
+        /// <param name="signature">signature of the data</param>
+        /// <param name="hashAlgorithm">algorithm that <paramref name="hash" /> was hashed with</param>
+        /// <exception cref="ArgumentNullException">
+        ///     if <paramref name="hash" />, <paramref name="signature" />, or
+        ///     <paramref name="hashAlgorithm" /> are null
+        /// </exception>
+        /// <returns>true if the signature verifies for the hash, false if it does not</returns>
         [SecurityCritical]
         [SecurityTreatAsSafe]
         public bool VerifyHash(byte[] hash, byte[] signature, CngAlgorithm hashAlgorithm)

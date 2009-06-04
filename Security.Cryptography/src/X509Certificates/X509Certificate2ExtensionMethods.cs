@@ -12,12 +12,25 @@ using Microsoft.Win32.SafeHandles;
 namespace Security.Cryptography.X509Certificates
 {
     /// <summary>
-    ///     Extension methods for the X509Certificate2 type
+    ///     The X509Certificate2ExtensionMethods type provides several extension methods for the
+    ///     <see cref="X509Certificate2" /> class. This type is in the Security.Cryptography.X509Certificates
+    ///     namespace (not the System.Security.Cryptography.X509Certificates namespace), so in order to use
+    ///     these extension methods, you will need to make sure you include this namespace as well as a
+    ///     reference to Security.Cryptography.dll.
     /// </summary>
     public static class X509Certificate2ExtensionMethods
     {
         /// <summary>
-        ///     Get the private key of a certificate that has its key stored with NCrypt
+        ///     <para>
+        ///         The GetCngPrivateKey method will return a <see cref="CngKey"/> representing the private
+        ///         key of an X.509 certificate which has its private key stored with NCrypt rather than with
+        ///         CAPI. If the key is not stored with NCrypt or if there is no private key available,
+        ///         GetCngPrivateKey returns null.
+        ///     </para>
+        ///     <para>
+        ///         The HasCngKey method can be used to test if the certificate does have its private key
+        ///         stored with NCrypt.
+        ///     </para>
         /// </summary>
         [SecurityCritical]
         [SecurityTreatAsSafe]

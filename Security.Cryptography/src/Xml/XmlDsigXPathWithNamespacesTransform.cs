@@ -14,18 +14,39 @@ using Security.Cryptography.Properties;
 namespace Security.Cryptography.Xml
 {
     /// <summary>
-    ///     XmlDsigXPathWithNamespacesTransform provides a version of the XPath transform which allows the
-    ///     XPath expression to use the namespace mappings in scope at the point of the XML declaration of the
-    ///     XPath expression.  The standard XmlDsigXPathTransform requires that any namespaces being used in
-    ///     the XPath expression be defined on the XPath node explicitly.  This version of the transform
-    ///     allows any namepsace in scope at the XPath node to be used, even if they are not explicitly
-    ///     declared on the node itself.
-    ///     
-    ///     In order to use this transform when signing, simply add it to the Reference section that should
-    ///     be processed with the XPath expression.  For verification purposes, machine.config must be edited
-    ///     so that SignedXml creates this version of the XPath transform when processing a signature.
-    ///     
-    ///     This transform can be registered in machine.config in a section similar to:
+    ///     <para>
+    ///         XmlDsigXPathWithNamespacesTransform provides a version of the XPath transform which allows the
+    ///         XPath expression to use the namespace mappings in scope at the point of the XML declaration of
+    ///         the XPath expression. The standard XmlDsigXPathTransform requires that any namespaces being
+    ///         used in the XPath expression be defined on the XPath node explicitly. This version of the
+    ///         transform allows any namepsace in scope at the XPath node to be used, even if they are not
+    ///         explicitly declared on the node itself.
+    ///     </para>
+    ///     <para>
+    ///         In order to use this transform when signing, simply add it to the Reference section that
+    ///         should be processed with the XPath expression. For example:
+    ///     </para>
+    ///     <example>
+    ///         Reference reference = new Reference("");
+    ///         reference.AddTransform(new XmlDsigEnvelopedSignatureTransform());
+    ///
+    ///         // Ensure that we can use the clrsec namespace in the XPath expression
+    ///         Dictionary&lt;string, string&gt; additionalNamespaces = new Dictionary&lt;string, string&gt;();
+    ///         additionalNamespaces ["clrsec"] = "http://www.codeplex.com/clrsecurity";
+    ///         reference.AddTransform(new XmlDsigXPathWithNamespacesTransform("ancestor-or-self::node()[@clrsec:sign='true']", null, additionalNamespaces));
+    ///     </example>
+    ///     <para>
+    ///         For verification purposes, machine.config must be setup to map the XPath transform URL to
+    ///         XmlDsigXPathWithNamespacesTransform so that SignedXml creates this version of the XPath
+    ///         transform when processing a signature.
+    ///     </para>
+    ///     <para>
+    ///         Registration in CryptoConfig requires editing the machine.config file found in the .NET
+    ///         Framework installation's configuration directory (such as
+    ///         %WINDIR%\Microsoft.NET\Framework\v2.0.50727\Config or
+    ///         %WINDIR%\Microsoft.NET\Framework64\v2.0.50727\Config) to include registration information on
+    ///         the type. For example:
+    ///     </para>
     ///     <example>
     ///         <![CDATA[
     ///           <configuration>
@@ -42,7 +63,25 @@ namespace Security.Cryptography.Xml
     ///           </configuration>    
     ///         ]]>
     ///     </example>
-    ///     See http://www.w3.org/TR/xmldsig-core/#sec-XPath for more information on the XPath transform.
+    ///     <para>
+    ///         After adding this registration entry, the assembly which contains the
+    ///         XmlDsigXPathWithNamespacesTransform (in the example above Security.Cryptography.dll) needs to
+    ///         be added to the GAC.
+    ///     </para>
+    ///     <para>  
+    ///         Note that on 64 bit machines, both the Framework and Framework64 machine.config files should
+    ///         be updated, and if the signature description assembly is built bit-specific it needs to be
+    ///         added to both the 32 and 64 bit GACs.
+    ///     </para>
+    ///     <para>
+    ///         See http://www.w3.org/TR/xmldsig-core/#sec-XPath for more information on the XPath transform.
+    ///     </para>
+    ///     <para>
+    ///         Since most of the XmlDsigXPathWithNamespacesTransform APIs are inherited from the
+    ///         <see cref="XmlDsigXPathTransform" /> base class, please see the MSDN documentation for
+    ///         XmlDsigXPathTransform for a complete list of the methods and properties available on
+    ///         XmlDsigXPathWithNamespacesTransform.
+    ///     </para>
     /// </summary>
     [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "XPath", Justification = "This matches the XPath spelling in the rest of the framework.")]
     public sealed class XmlDsigXPathWithNamespacesTransform : XmlDsigXPathTransform
@@ -51,24 +90,38 @@ namespace Security.Cryptography.Xml
         private IDictionary<string, string> m_namespaces;
         private string m_xpathExpression;
 
+        /// <summary>
+        ///     Constructs an XmlDsigXPathWithNamespacesTransform object without an initial XPath query or
+        ///     namespaces.  This constructor should not be used, and is provided so that the type may be
+        ///     instantiated from CryptoConfig.
+        /// </summary>
         public XmlDsigXPathWithNamespacesTransform()
         {
         }
 
         /// <summary>
-        ///     Create a transform for a specific XPath expressin which does not need any additional XML
-        ///     namespaces in scope.
+        ///     Constructs an XmlDsigXPathWithNamespacesTransform object which will apply the given XPath
+        ///     expression when it is invoked. No XML namespaces will be brought into scope for use in the
+        ///     query.
         /// </summary>
+        /// <param name="xpath">xpath expression to use in this transform</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="xpath" /> is null</exception>
         public XmlDsigXPathWithNamespacesTransform(string xpath) : this(xpath, null)
         {
         }
 
         /// <summary>
-        ///     Create a transform for a specific XPath expression which will explicitly bring some
-        ///     namepsace mappings into scope for the query.  These namespacse will be added to the XPath
-        ///     expression node in the produced XML, and are therefore guaranteed to be in scope when the
-        ///     query runs in the verification process.
+        ///     Constructs an XmlDsigXPathWithNamespacesTransform object which will apply the given XPath
+        ///     expression when it is invoked. Any namespace mappings in the explicitNamespaces dictionary
+        ///     will be available for use in the XPath expression and will also be added to the XPath node in
+        ///     the transform's XML, which allows the transform to be processed by the standard
+        ///     XmlDsigXPathTransform.
         /// </summary>
+        /// <param name="xpath">xpath expression to use in this transform</param>
+        /// <param name="explicitNamespaces">
+        ///     namespaces mappings to add directly to the XPath portion of the transform
+        /// </param>
+        /// <exception cref="ArgumentNullException">if <paramref name="xpath" /> is null</exception>
         public XmlDsigXPathWithNamespacesTransform(string xpath,
                                                    IDictionary<string, string> explicitNamespaces)
             : this(xpath, explicitNamespaces, null)
@@ -76,13 +129,24 @@ namespace Security.Cryptography.Xml
         }
 
         /// <summary>
-        ///     Create a transform for a specific XPath expression with namespace mappings available for the
-        ///     expression to use.  Explicit namespaces are directly added to the XPath element of the
-        ///     transform, and will appear in the produced XML (guaranteeing that they will be visible when
-        ///     the transform runs in the verification process).  Additional namespaces will not be added to
-        ///     the transform XML itself, and will be required to be in scope of the XPath node in the XML
-        ///     when the verification process runs.
+        ///     Constructs an XmlDsigXPathWithNamespacesTransform object which will apply the given XPath
+        ///     expression when it is invoked. Any namespace mappings in the explicitNamespaces dictionary
+        ///     will be available for use in the XPath expression and will also be added to the XPath node in
+        ///     the transform's XML, which allows the transform to be processed by the standard
+        ///     XmlDsigXPathTransform. The additionalNamespaces dictionary provides namespace mappings which
+        ///     will be available during signing but which will not be added to the XPath node of the
+        ///     transform. These namespaces will need to be in scope from elsewhere in the XML document during
+        ///     verification for the transform to succeed.
         /// </summary>
+        /// <param name="xpath">xpath expression to use in this transform</param>
+        /// <param name="explicitNamespaces">
+        ///     namespaces mappings to add directly to the XPath portion of the transform
+        /// </param>
+        /// <param name="additionalNamespaces">
+        ///     namespaces to use while signing, but not to bring into scope explicitly on the XPath portion
+        ///     of the transform
+        /// </param>
+        /// <exception cref="ArgumentNullException">if <paramref name="xpath" /> is null</exception>
         public XmlDsigXPathWithNamespacesTransform(string xpath,
                                                    IDictionary<string, string> explicitNamespaces,
                                                    IDictionary<string, string> additionalNamespaces)

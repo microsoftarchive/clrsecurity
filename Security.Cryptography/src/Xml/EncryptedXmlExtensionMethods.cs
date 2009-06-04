@@ -8,16 +8,20 @@ using System.Xml;
 namespace Security.Cryptography.Xml
 {
     /// <summary>
-    ///     Extension methods for the EncryptedXml type
+    ///     The EncryptedXmlExtension methods type provides several extension methods for the 
+    ///     <see cref="EncryptedXml" /> class. This type is in the Security.Cryptography.Xml namespace (not
+    ///     the System.Security.Cryptography.Xml namespace), so in order to use these extension methods, you
+    ///     will need to make sure you include this namespace as well as a reference to
+    ///     Security.Cryptography.dll.
     /// </summary>
     public static class EncryptedXmlExtensionMethods
     {
         /// <summary>
         ///     Replace the XML element with the decrypted data.  This method works very much like the
-        ///     standard ReplaceData API, with one exception.  If inputElement is the root element of an XML
-        ///     document, ReplaceData2 will ensure that any other top-level XML items (such as the XML
-        ///     declaration) will not be overwritten, whereas ReplaceData always overwrites the entire XML
-        ///     document with the decrypted data.
+        ///     standard <see cref="EncryptedXml.ReplaceData" /> API, with one exception.  If inputElement is
+        ///     the root element of an XML document, ReplaceData2 will ensure that any other top-level XML
+        ///     items (such as the XML declaration) will not be overwritten, whereas ReplaceData always
+        ///     overwrites the entire XML document with the decrypted data.
         /// </summary>
         [SuppressMessage("Microsoft.Design", "CA1059:MembersShouldNotExposeCertainConcreteTypes", MessageId = "System.Xml.XmlNode", Justification = "This is to match the signature with the existing ReplaceData API")]
         public static void ReplaceData2(this EncryptedXml encryptedXml,

@@ -14,12 +14,18 @@ using Security.Cryptography.Xml;
 namespace Security.Cryptography
 {
     /// <summary>
-    ///     .NET v3.5 added some new crypto algorithms in System.Core.dll, however due to layering
-    ///     restrictions CryptoConfig does not have registration entries for these algorithms.  Similarly,
-    ///     CryptoConfig does not know about any of the algorithms added in this assembly.
-    ///     
-    ///     CryptoConfig2 wraps the CryptoConfig.Create method, allowing it to also create System.Core and
-    ///     Microsoft.Security.Cryptography algorithm objects.
+    ///     <para>
+    ///         .NET v3.5 added some new crypto algorithms in System.Core.dll, however due to layering
+    ///         restrictions CryptoConfig does not have registration entries for these algorithms.  Similarly,
+    ///         CryptoConfig does not know about any of the algorithms added in this assembly.
+    ///     </para>
+    ///     <para>
+    ///         CryptoConfig2 wraps the CryptoConfig.Create method, allowing it to also create System.Core and
+    ///         Microsoft.Security.Cryptography algorithm objects.
+    ///     </para>
+    ///     <para>
+    ///         CryptoConfig2 requires the .NET Framework 3.5.
+    ///     </para>
     /// </summary>
     public static class CryptoConfig2
     {
@@ -76,8 +82,38 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Add an algorithm to the default map used in this AppDomain
+        ///     <para>
+        ///         AddAlgorithm allows an application to register a new algorithm with CryptoConfig2 in the
+        ///         current AppDomain. The algorithm is then creatable via calling
+        ///         <see cref="CreateFromName" /> and supplying one of:
+        ///     </para>
+        ///     <list type="bullet">
+        ///         <item>The name of the algorithm type</item>
+        ///         <item>The namespace qualified name of the algorithm type</item>
+        ///         <item>Any of the aliases supplied for the type</item>
+        ///     </list>
+        ///     <para>
+        ///         This registration is valid only in the AppDomain that does the registration, and is not
+        ///         persisted. The registered algorithm will only be creatable via CryptoConfig2 and not via
+        ///         standard <see cref="CryptoConfig" />.
+        ///     </para>
+        ///     <para>
+        ///         All algorithms registered with CryptoConfig2 must have a default constructor, or they wil
+        ///          not be creatable at runtime.
+        ///     </para>
+        ///     <para>
+        ///         This method is thread safe.
+        ///     </para>
         /// </summary>
+        /// <permission cref="PermissionSet">The immediate caller of this API must be fully trusted</permission>
+        /// <param name="algorithm">type to register with CryptoConfig2</param>
+        /// <param name="aliases">list of additional aliases which can create the type</param>
+        /// <exception cref="ArgumentNullException">
+        ///     if <paramref name="algorithm"/> or <paramref name="aliases"/> are null
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        ///     if an alias is either null, empty, or a duplicate of an existing registered alias
+        /// </exception>
         [PermissionSet(SecurityAction.LinkDemand, Unrestricted = true)]
         [SecurityCritical]
         public static void AddAlgorithm(Type algorithm, params string[] aliases)
@@ -145,8 +181,34 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Create an object from crypto config
+        ///     <para>
+        ///         CreateFromName attempts to map the given algorithm name into an instance of the specified
+        ///         algorithm. It works with both the built in algorithms in the .NET Framework 3.5 as well
+        ///         as the algorithms in the Security.Cryptography.dll assembly. Since it does work with the
+        ///         built in crypto types, CryptoConfig2.CreateFromName can be used as a drop-in replacement
+        ///         for <see cref="CryptoConfig.CreateFromName(string)" />
+        ///     </para>
+        ///     <para>
+        ///         Types in System.Core.dll and Security.Cryptography.dll can be mapped either by their
+        ///         simple type name or their namespace type name. For example, AesCng and
+        ///         Security.Cryptography.AesCng will both create an instance of the <see cref="AesCng" />
+        ///         type. Additionally, the following names are also given mappings in CryptoConfig2:
+        ///     </para>
+        ///     <list type="bullet">
+        ///         <item>AES - <see cref="AesCryptoServiceProvider" /></item>
+        ///         <item>ECDsa - <see cref="ECDsaCng" /></item>
+        ///         <item>ECDH - <see cref="ECDiffieHellmanCng" /></item>
+        ///         <item>ECDiffieHellman - <see cref="ECDiffieHellmanCng" /></item>
+        ///     </list>
+        ///     <para>
+        ///         Name comparisons are case insensitive.
+        ///     </para>
+        ///     <para>
+        ///         This method is thread safe.
+        ///     </para>
         /// </summary>
+        /// <param name="name">name of the algorithm to create</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="name"/> is null</exception>
         public static object CreateFromName(string name)
         {
             if (name == null)

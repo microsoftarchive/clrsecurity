@@ -12,7 +12,7 @@ namespace Security.Cryptography
     public interface ICngSymmetricAlgorithm : ICngAlgorithm
     {
         /// <summary>
-        ///     Chaining mode to be used for the algorithm
+        ///     Get or set the CNG chaining mode the algorithm is using.
         /// </summary>
         CngChainingMode CngMode { get; set; }
     }

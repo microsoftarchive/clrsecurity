@@ -6,7 +6,8 @@ using System.Security.Cryptography;
 namespace Security.Cryptography
 {
     /// <summary>
-    ///     Extra CNG algorithm objects for algorithms not in the standard CngAlgorithm type
+    ///     The CngAlgorithm2 class provides additional <see cref="CngAlgorithm" /> objects to suppliment the
+    ///     ones found on the standard <see cref="CngAlgorithm" /> type.
     /// </summary>
     public static class CngAlgorithm2
     {

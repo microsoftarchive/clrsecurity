@@ -7,18 +7,53 @@ using Security.Cryptography.Properties;
 namespace Security.Cryptography
 {
     /// <summary>
-    ///     CNG implementation of the AES encryption algorithm.
-    ///     
-    ///     See code:Microsoft.Security.Cryptography.BCryptSymmetricAlgorithm
+    ///     <para>
+    ///         The AesCng class provides a wrapper for the CNG implementation of the AES algorithm. It
+    ///         provides the same interface as the other AES implementations shipped with the .NET Framework,
+    ///         including <see cref="AesManaged" /> and <see cref="AesCryptoServiceProvider" />.
+    ///     </para>
+    ///     <para>
+    ///         AesCng uses the BCrypt layer of CNG to do its work, and requires Windows Vista and the .NET
+    ///         Framework 3.5.
+    ///    </para>
+    ///    <para>
+    ///         Since most of the AesCng APIs are inherited from the <see cref="Aes" /> base class, see the
+    ///         documentation for Aes for a complete API description.
+    ///    </para>
     /// </summary>
     public sealed class AesCng : Aes, ICngSymmetricAlgorithm
     {
         private BCryptSymmetricAlgorithm m_symmetricAlgorithm;
 
+        /// <summary>
+        ///     Constructs an AesCng object. The default settings for this object are:
+        ///     <list type="bullet">
+        ///         <item>Algorithm provider - Microsoft Primitive Algorithm Provider</item>
+        ///         <item>Block size - 128 bits</item>
+        ///         <item>Feedback size - 8 bits</item>
+        ///         <item>Key size - 256 bits</item>
+        ///         <item>Cipher mode - CipherMode.CBC</item>
+        ///         <item>Padding mode - PaddingMode.PKCS7</item>
+        ///     </list>
+        /// </summary>
         public AesCng() : this(CngProvider2.MicrosoftPrimitiveAlgorithmProvider)
         {
         }
 
+        /// <summary>
+        ///     Constructs an AesCng object using the specified algorithm provider. The default settings for
+        ///     this object are:
+        ///     <list type="bullet">
+        ///         <item>Algorithm provider - Microsoft Primitive Algorithm Provider</item>
+        ///         <item>Block size - 128 bits</item>
+        ///         <item>Feedback size - 8 bits</item>
+        ///         <item>Key size - 256 bits</item>
+        ///         <item>Cipher mode - CipherMode.CBC</item>
+        ///         <item>Padding mode - PaddingMode.PKCS7</item>
+        ///     </list>
+        /// </summary>
+        /// <exception cref="ArgumentNullException">if <paramref name="algorithmProvider"/> is null</exception>
+        /// <param name="algorithmProvider">algorithm provider to use for AES computation</param>
         public AesCng(CngProvider algorithmProvider)
         {
             if (algorithmProvider == null)
@@ -101,6 +136,14 @@ namespace Security.Cryptography
             get { return m_symmetricAlgorithm.LegalBlockSizes; }
         }
 
+        /// <summary>
+        ///     Gets or sets the cipher mode to use during encryption or decryption. Supported modes are:
+        ///     <list type="bullet">
+        ///         <item>CipherMode.CBC</item>
+        ///         <item>CipherMode.ECB</item>
+        ///         <item>CipherMode.CFB</item>
+        ///     </list>
+        /// </summary>
         public override CipherMode Mode
         {
             get { return m_symmetricAlgorithm.Mode; }

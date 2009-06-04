@@ -12,7 +12,8 @@ namespace Security.Cryptography
     public interface ICngAlgorithm
     {
         /// <summary>
-        ///     Algorithm or key storage provider being used for the implementation
+        ///     Gets the algorithm or key storage provider being used for the implementation of the CNG
+        ///     algorithm.
         /// </summary>
         CngProvider Provider { get; }
     }

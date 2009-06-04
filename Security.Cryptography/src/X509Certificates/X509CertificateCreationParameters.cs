@@ -3,14 +3,17 @@
 using System;
 using System.Collections.Generic;
 using System.Security;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Permissions;
 
 namespace Security.Cryptography.X509Certificates
 {
     /// <summary>
-    ///     The CertificateCreationOptions type provides the inputs used to create an X509Certificate2.
-    ///     These parameters can be combined with a key to create a self signed certificate.
+    ///     The X509CertificateCreationParameters class allows customization of the properties of an X509
+    ///     certificate that is being created. For instance, these parameters can be used with the
+    ///     <see cref="CngKeyExtensionMethods.CreateSelfSignedCertificate(CngKey, X509CertificateCreationParameters)" />
+    ///     API.
     /// </summary>
     public sealed class X509CertificateCreationParameters
     {
@@ -21,6 +24,12 @@ namespace Security.Cryptography.X509Certificates
         private DateTime m_startTime = DateTime.UtcNow;
         private X509ExtensionCollection m_extensions = new X509ExtensionCollection();
 
+        /// <summary>
+        ///     Creates a new X509CertificateCreationParameters object which can be used to create a new X509
+        ///     certificate issued to the specified subject.
+        /// </summary>
+        /// <param name="subjectName">The name of the subject the new certificate will be issued to</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="subjectName" /> is null</exception>
         public X509CertificateCreationParameters(X500DistinguishedName subjectName)
         {
             if (subjectName == null)
@@ -30,7 +39,8 @@ namespace Security.Cryptography.X509Certificates
         }
 
         /// <summary>
-        ///     Flags to use when creating the certificate
+        ///     Gets or sets the flags used to create the X509 certificate. The default value is
+        ///     X509CertificateCreationOptions.DoNotLinkKeyInformation.
         /// </summary>
         public X509CertificateCreationOptions CertificateCreationOptions
         {
@@ -39,7 +49,8 @@ namespace Security.Cryptography.X509Certificates
         }
 
         /// <summary>
-        ///     Time that the certificate stops being valid
+        ///     Gets or sets the expiration date of the newly created certificate. If not set, this property
+        ///     defaults to one year after the X509CertificateCreationParameters object is constructed.
         /// </summary>
         public DateTime EndTime
         {
@@ -48,8 +59,12 @@ namespace Security.Cryptography.X509Certificates
         }
 
         /// <summary>
-        ///     Extensions to apply to the certificate
+        ///     The Extensions property holds a collection of the X509Extensions that will be applied to the
+        ///     newly created certificate.
         /// </summary>
+        /// <permission cref="SecurityPermission">
+        ///     This property requires SecurityPermission/UnmanagedCode to access
+        /// </permission>
         public X509ExtensionCollection Extensions
         {
             [SecurityPermission(SecurityAction.Demand, UnmanagedCode = true)]
@@ -71,8 +86,13 @@ namespace Security.Cryptography.X509Certificates
         }
 
         /// <summary>
-        ///     Algorithm the certificate will be signed with
+        ///     Gets or sets the algorithm which will be used to sign the newly created certificate. If this
+        ///     property is not set, the default value is X509CertificateSignatureAlgorithm.RsaSha1.
         /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     if the value specified is not a member of the <see cref="X509CertificateSignatureAlgorithm" />
+        ///     enumeration.
+        /// </exception>
         public X509CertificateSignatureAlgorithm SignatureAlgorithm
         {
             get { return m_signatureAlgorithm; }
@@ -90,8 +110,9 @@ namespace Security.Cryptography.X509Certificates
         }
 
         /// <summary>
-        ///     Name of the certificate subject
+        ///     Gets or sets the name of the subject that the newly created certificate will be issued to.
         /// </summary>
+        /// <exception cref="ArgumentNullException">if SubjectName is set to a null value</exception>
         public X500DistinguishedName SubjectName
         {
             get { return new X500DistinguishedName(m_subjectName); }
@@ -105,7 +126,8 @@ namespace Security.Cryptography.X509Certificates
         }
 
         /// <summary>
-        ///     Time that the certificate will become valid
+        ///     Gets or sets the time that the newly created certificate will become valid. If not set, this
+        ///     property defaults to the time that the X509CertificateCreationParameters object is created.
         /// </summary>
         public DateTime StartTime
         {

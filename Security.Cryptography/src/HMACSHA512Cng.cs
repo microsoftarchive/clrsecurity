@@ -7,7 +7,19 @@ using System.Security.Cryptography;
 namespace Security.Cryptography
 {
     /// <summary>
-    ///     HMAC-SHA512 implementation on top of CNG
+    ///     <para>
+    ///         The HMACSHA512Cng class provides a wrapper for the CNG implementation of the HMAC SHA512
+    ///         algorithm. It provides the same interface as the other HMAC implementations shipped with the
+    ///         .NET Framework, including <see cref="HMACSHA256" />
+    ///     </para>
+    ///     <para>
+    ///         HMACSHA512Cng uses the BCrypt layer of CNG to do its work, and requires Windows Vista and the
+    ///         .NET Framework 3.5.
+    ///     </para>
+    ///     <para>
+    ///         Since most of the HMACSHA512Cng APIs are inherited from the <see cref="HMAC" /> base class,
+    ///         please see the MSDN documentation for HMAC for a complete description.
+    ///     </para>
     /// </summary>
     [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "HMACSHA", Justification = "This matches the HMAC naming in the BCL")]
     public sealed class HMACSHA512Cng : HMAC, ICngAlgorithm
@@ -16,14 +28,33 @@ namespace Security.Cryptography
 
         private BCryptHMAC m_hmac;
 
+        /// <summary>
+        ///     Constructs a HMACSHA512Cng object with a randomly generated key, which will use the Microsoft
+        ///     PrimitiveAlgorithm Provider to do its work.
+        /// </summary>
         public HMACSHA512Cng() : this(RNGCng.GenerateKey(BlockSize))
         {
         }
 
+        /// <summary>
+        ///     Constructs a HMACSHA512Cng object using the given key, which will use the Microsoft
+        ///     Primitive Algorithm Provider to do its work.
+        /// </summary>
+        /// <param name="key">key to use when calculating the HMAC</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="key"/> is null</exception>
         public HMACSHA512Cng(byte[] key) : this(key, CngProvider2.MicrosoftPrimitiveAlgorithmProvider)
         {
         }
 
+        /// <summary>
+        ///     Constructs a HMACSHA512Cng object using the given key, which will calculate the HMAC using the
+        ///     given algorithm provider and key.
+        /// </summary>
+        /// <param name="key">key to use when calculating the HMAC</param>
+        /// <param name="algorithmProvider">algorithm provider to calculate the HMAC in</param>
+        /// <exception cref="ArgumentNullException">
+        ///     if <paramref name="key"/> or <paramref name="algorithmProvider"/> are null
+        /// </exception>
         public HMACSHA512Cng(byte[] key, CngProvider algorithmProvider)
         {
             if (key == null)

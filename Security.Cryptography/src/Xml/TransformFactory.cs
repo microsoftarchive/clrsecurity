@@ -9,15 +9,21 @@ using System.Xml;
 namespace Security.Cryptography.Xml
 {
     /// <summary>
-    ///     Class to produce XML digital signature transform objects more easily than the
-    ///     System.Security.dll object model exposes.
+    ///     The TransformFactory class provides helper methods for programmatically creating transforms for
+    ///     use with the <see cref="SignedXml" /> class. Since many of the transforms do not have constructors
+    ///     or other method that allow them to be created easily in code when creating an XML signature, they
+    ///     generally have to be constructed via XML. TransformFactory provides APIs that allow you to create
+    ///     these transforms without having to directly create the XML for the transform by hand.
     /// </summary>
     public static class TransformFactory
     {
         /// <summary>
-        ///     Create an XPath transform for the specified query string.  This overload does not add any
-        ///     namespace declarations for use within the XPath query.
+        ///     Creates an XPath transform for the given XPath query. The transform created from this method
+        ///     does not bring any XML namespaces into scope, so the XPath query must not rely on any XML
+        ///     namespaces from the XML being signed.
         /// </summary>
+        /// <param name="xpath">XPath query to embed into the transform</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="xpath"/> is null</exception>
         [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "XPath", Justification = "This matches the XPath spelling in the rest of the framework.")]
         public static XmlDsigXPathTransform CreateXPathTransform(string xpath)
         {
@@ -25,9 +31,20 @@ namespace Security.Cryptography.Xml
         }
 
         /// <summary>
-        ///     Create an XPath transform for a specific query string.  This overload also allows namespace
-        ///     mappings for XML namespaces used in the XPath query.
+        ///     <para>
+        ///         Creates an XPath transform for the given XPath query. If <paramref name="namespaces" />
+        ///         is provided, it should contain mappings of XML namespace prefixes to namespace URIs. Each
+        ///         key in the dictionary will be interpreted as a prefix corresponding to the value's URI.
+        ///     </para>
+        ///     <para>
+        ///         The XPath query can rely upon the namespaces brought into scope by the
+        ///         <paramref name="namespaces" /> dictionary, but not any other namespaces in the XML being
+        ///         signed.
+        ///     </para>
         /// </summary>
+        /// <param name="xpath">XPath query to embed into the transform</param>
+        /// <param name="namespaces">optional XML namespace mappings to bring into scope for the query</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="xpath"/> is null</exception>
         [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "XPath", Justification = "This matches the XPath spelling in the rest of the framework.")]
         public static XmlDsigXPathTransform CreateXPathTransform(string xpath, IDictionary<string, string> namespaces)
         {

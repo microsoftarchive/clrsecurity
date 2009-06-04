@@ -12,14 +12,17 @@ namespace Security.Cryptography
     public interface ICryptoTransform2 : ICryptoTransform
     {
         /// <summary>
-        ///     Can the transform be used in a chained mode - where it is invoked multiple times before the
-        ///     final ciphertext and tag are retrieved.  (For example, can it transform each block in the
-        ///     input in seperate calls, or must they all come in through a single call.)
-        ///     
-        ///     This is different from CanTransformMultipleBlocks in that CanTransformMultipleBlocks
-        ///     indicates if a transform can handle multiple blocks of input in a single call, while
-        ///     CanChainBlocks indicates if a transform can chain multiple blocks of input across multiple
-        ///     calls to TransformBlock/TransformFinalBlock.
+        ///     <para>
+        ///         Can the transform be used in a chained mode - where it is invoked multiple times before
+        ///         the final ciphertext and tag are retrieved.  (For example, can it transform each block in
+        ///         the input in seperate calls, or must they all come in through a single call.)
+        ///     </para>
+        ///     <para>
+        ///         This is different from CanTransformMultipleBlocks in that CanTransformMultipleBlocks
+        ///         indicates if a transform can handle multiple blocks of input in a single call, while
+        ///         CanChainBlocks indicates if a transform can chain multiple blocks of input across multiple
+        ///         calls to TransformBlock/TransformFinalBlock.
+        ///     </para>
         /// </summary>
         bool CanChainBlocks { get; }
     }

@@ -14,8 +14,11 @@ namespace Security.Cryptography
     public interface ICngAsymmetricAlgorithm : ICngAlgorithm
     {
         /// <summary>
-        ///     CNG key being used by the asymmetric algorithm
+        ///     Get the CNG key being used by the asymmetric algorithm.
         /// </summary>
+        /// <permission cref="SecurityPermission">
+        ///     This method requires that the immediate caller have SecurityPermission/UnmanagedCode
+        /// </permission>
         CngKey Key
         {
             [SecurityCritical]

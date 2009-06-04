@@ -78,24 +78,55 @@ namespace Security.Cryptography.X509Certificates
     }
 
     /// <summary>
-    ///     Flags for use when creating a new certificate
+    ///     The X509CertificateCreationOptions enumeration provides a set of flags for use when creating a new
+    ///     X509 certificate.
     /// </summary>
     [Flags]
     public enum X509CertificateCreationOptions
     {
+        /// <summary>
+        ///     Do not set any flags when creating the certificate
+        /// </summary>
         None                    = 0x00000000,
-        DoNotSignCertificate    = 0x00000001,       // CERT_CREATE_SELFSIGN_NO_KEY_INFO
-        DoNotLinkKeyInformation = 0x00000002,       // CERT_CREATE_SELFSIGN_NO_SIGN
+
+        /// <summary>
+        ///     Create an unsigned certificate.  This maps to the CERT_CREATE_SELFSIGN_NO_SIGN flag.
+        /// </summary>
+        DoNotSignCertificate    = 0x00000001,
+
+        /// <summary>
+        ///     By default, certificates will reference their private keys by setting the
+        ///     CERT_KEY_PROV_INFO_PROP_ID; the DoNotLinkKeyInformation flag causes the certificate to
+        ///     instead contain the private key direclty rather than by reference.  This maps to the
+        ///     CERT_CREATE_SELFSIGN_NO_KEY_INFO flag.
+        /// </summary>
+        DoNotLinkKeyInformation = 0x00000002,
     }
 
     /// <summary>
-    ///     Signature algorithms which can be used to sign an X.509 certificate
+    ///     The X509CertificateSignatureAlgorithm enumeration provides a set of algorithms which can be used
+    ///     to sign an X509 certificate.
     /// </summary>
     public enum X509CertificateSignatureAlgorithm
     {
+        /// <summary>
+        ///     The certificate is signed with RSA-SHA1
+        /// </summary>
         RsaSha1,
+
+        /// <summary>
+        ///     The certificate is signed with RSA-SHA256
+        /// </summary>
         RsaSha256,
+
+        /// <summary>
+        ///     The certificate is signed with RSA-SHA384
+        /// </summary>
         RsaSha384,
+
+        /// <summary>
+        ///     The certificate is signed with RSA-SHA512
+        /// </summary>
         RsaSha512,
     }
 
