@@ -2,11 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security;
+using System.Security.Permissions;
 using System.Security.Policy;
 using Security.Policy;
 using Security.Reflection;
@@ -43,6 +45,9 @@ namespace Security
         ///     </para>
         /// </summary>
         /// <typeparam name="T">Type to create an execution-only instance of</typeparam>
+        [SecurityCritical]
+        [SecurityTreatAsSafe]
+        [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "This API only allows creation at execute-only level, so it cannot be used to elevate")]
         [SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "This matches the Activator.CreateInstance<T> pattern")]
         public static T CreateSandboxedInstance<T>()
             where T : MarshalByRefObject
@@ -59,6 +64,11 @@ namespace Security
         /// <typeparam name="T">Type to create a sandboxed instance of</typeparam>
         /// <param name="grantSet">Permissions to grant the object</param>
         /// <exception cref="ArgumentNullException">if <paramref name="grantSet"/> is null</exception>
+        /// <permission cref="PermissionSet">
+        ///     This API requires that its immediate caller be fully trusted
+        /// </permission>
+        [SecurityCritical]
+        [PermissionSet(SecurityAction.LinkDemand, Unrestricted = true)]
         [SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "This matches the Activator.CreateInstance<T> pattern")]
         public static T CreateSandboxedInstance<T>(PermissionSet grantSet)
             where T : MarshalByRefObject
@@ -80,6 +90,12 @@ namespace Security
         /// <param name="grantSet">Permission set to grant the object</param>
         /// <param name="fullTrustList">Optional list of fullly trusted assemblies for the object to work with</param>
         /// <exception cref="ArgumentNullException">if <paramref name="grantSet"/> is null</exception>
+        /// <permission cref="PermissionSet">
+        ///     This API requires that its immediate caller be fully trusted
+        /// </permission>
+        [SecurityCritical]
+        [SecurityTreatAsSafe]
+        [PermissionSet(SecurityAction.LinkDemand, Unrestricted = true)]
         [SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "This matches the Activator.CreateInstance<T> pattern")]
         public static T CreateSandboxedInstance<T>(PermissionSet grantSet, IEnumerable<Assembly> fullTrustList)
             where T : MarshalByRefObject
@@ -90,30 +106,15 @@ namespace Security
             lock (s_sandboxesLock)
             {
                 string sandboxAppBase = Path.GetDirectoryName(typeof(T).Assembly.Location);
-                int fullTrustListCount = fullTrustList != null ? fullTrustList.Count() : 0;
 
                 // Narrow down the sandboxes to ones which have the correct AppBase, grant set, and number
                 // of full trust assemblies
                 var candidateSandboxes = from candidateSandbox in s_sandboxes
-                                         where String.Equals(candidateSandbox.SetupInformation.ApplicationBase, sandboxAppBase, StringComparison.OrdinalIgnoreCase) &&
-                                               grantSet.IsSubsetOf(candidateSandbox.GetPermissionSet()) &&
-                                               candidateSandbox.GetPermissionSet().IsSubsetOf(grantSet) &&
-                                               candidateSandbox.ApplicationTrust.GetFullTrustAssemblies().Count == fullTrustListCount
+                                         where IsCandidateSandbox(candidateSandbox, sandboxAppBase, grantSet, fullTrustList)
                                          select candidateSandbox;
 
-                // Look through the final list of candidates to see if any have the same full trust list;
-                AppDomain sandbox = null;
-                IEnumerator<AppDomain> candidateEnumerator = candidateSandboxes.GetEnumerator();
-                while (candidateEnumerator.MoveNext() && sandbox == null)
-                {
-                    IList<StrongName> sandboxFullTrustList = candidateEnumerator.Current.ApplicationTrust.GetFullTrustAssemblies();
-                    if (fullTrustList == null ||
-                        fullTrustList.All(a => sandboxFullTrustList.Contains(a.GetStrongName())))
-                    {
-                        // The full trust list matches - so let's select this to create our type in
-                        sandbox = candidateEnumerator.Current;
-                    }
-                }
+                // Pick the first matching candidate sandbox domain
+                AppDomain sandbox = candidateSandboxes.FirstOrDefault();
 
                 // If no suitable existing sandboxes were found, then create a new one and save it away
                 if (sandbox == null)
@@ -137,6 +138,59 @@ namespace Security
                                                                           null);
                 return sandboxedInstance.Unwrap() as T;
             }
+        }
+
+        /// <summary>
+        ///     Determine if a sandboxed AppDomain is a candidate for being used for a new object
+        /// </summary>
+        [SecurityCritical]
+        [SecurityTreatAsSafe]
+        private static bool IsCandidateSandbox(AppDomain candidateSandbox,
+                                               string requiredAppBase,
+                                               PermissionSet requiredGrantSet,
+                                               IEnumerable<Assembly> requiredFullTrustList)
+        {
+            Debug.Assert(candidateSandbox != null, "candidateSandbox != null");
+            Debug.Assert(!String.IsNullOrEmpty(requiredAppBase), "!String.IsNullOrEmpty(requiredAppBase)");
+            Debug.Assert(requiredGrantSet != null, "requiredGrantSet != null");
+            
+            // The candidate sandbox must have the correct AppBase
+            if (!String.Equals(candidateSandbox.SetupInformation.ApplicationBase,
+                               requiredAppBase,
+                               StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+            
+            // It must have the same grant set
+            PermissionSet candidateGrantSet = candidateSandbox.GetPermissionSet();
+            if (!requiredGrantSet.IsSubsetOf(candidateGrantSet) ||
+                !candidateGrantSet.IsSubsetOf(requiredGrantSet))
+            {
+                return false;
+            }
+
+            // If there is no required full trust list, then the candidate must not have one either
+            IList<StrongName> candidateFullTrustList = candidateSandbox.ApplicationTrust.GetFullTrustAssemblies();
+            if (requiredFullTrustList == null)
+            {
+                return candidateFullTrustList.Count == 0;
+            }
+
+            // If there is a required full trust list, the candidate must have the same number of trusted
+            // assemblies
+            if (requiredFullTrustList.Count() != candidateFullTrustList.Count)
+            {
+                return false;
+            }
+
+            // And each assembly in the candidate list must be in the required list
+            if (requiredFullTrustList.Any(a => !candidateFullTrustList.Contains(a.GetStrongName())))
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }
