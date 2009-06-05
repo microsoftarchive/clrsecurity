@@ -1,0 +1,186 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ApplicationExit" xml:space="preserve">
+    <value>:RUNNER: return: {0}</value>
+  </data>
+  <data name="CommandLine1" xml:space="preserve">
+    <value>Usage:</value>
+  </data>
+  <data name="CommandLine10" xml:space="preserve">
+    <value>Example usage: {0}.exe -af Samples\LibraryDemander.dll -ps LocalIntranet Samples\demander.exe</value>
+  </data>
+  <data name="CommandLine11" xml:space="preserve">
+    <value>This runs Samples\demander.exe and also makes sure Samples\LibraryDemander.dll is loaded as FullTrust</value>
+  </data>
+  <data name="CommandLine12" xml:space="preserve">
+    <value>{0} is a program designed to run an application in partial trust in an easy and simple way. Under the covers it starts an AppDomain with a permission set and a full trust list and uses this AppDomain to run your application in.</value>
+  </data>
+  <data name="CommandLine13" xml:space="preserve">
+    <value>If you are creating AppDomains or your application uses a host, you might not be able to use this program. This program is designed to offer an easy solution to those that want to run something in partial trust and don't care about the intricacies of this endeavor.</value>
+  </data>
+  <data name="CommandLine14" xml:space="preserve">
+    <value>NOTE: Make sure you are passing any parameters for the runner before passing the name of the program to be sandboxed.</value>
+  </data>
+  <data name="CommandLine15" xml:space="preserve">
+    <value>NOTE: For the xml parameter, the file format is the same as the output of PermissionSet.ToXml. (This is also the format that caspol -lp uses).</value>
+  </data>
+  <data name="CommandLine2" xml:space="preserve">
+    <value>{0} [-nro] [-ps NamedPermissionSet]|[-xml ptrunner.xml] [-af fullTrustAssembly] [-url sourceUrl] programName {{program arguments}}</value>
+  </data>
+  <data name="CommandLine3" xml:space="preserve">
+    <value>Parameters:</value>
+  </data>
+  <data name="CommandLine4" xml:space="preserve">
+    <value>-nro : No runner output. Stops the runner from printing start and stop messages.</value>
+  </data>
+  <data name="CommandLine5" xml:space="preserve">
+    <value>-ps : PermissionSet The standard permission set in which should be used to sandbox the application. This can be any one of: {0}</value>
+  </data>
+  <data name="CommandLine6" xml:space="preserve">
+    <value>-xml : XmlFile File containing the permission set which should be used to sandbox the application. This permission set takes precedence over the -ps parameter.</value>
+  </data>
+  <data name="CommandLine7" xml:space="preserve">
+    <value>-af AddToFullTrust One assembly that you want in the full trust list. Your full trust assembly must have a strong name signature. See "Strong-Named Assemblies" in MSDN for more information.</value>
+  </data>
+  <data name="CommandLine8" xml:space="preserve">
+    <value>-url : source URL to provide same-site access to in the sandbox</value>
+  </data>
+  <data name="CommandLine9" xml:space="preserve">
+    <value>program arguments are arguments for the sandboxed program. The first parameter which does not begin with a "-" is considered to be the path to the program to sandbox. All subsequent parameters are considered to be parameters for the sandboxed program itself.</value>
+  </data>
+  <data name="ErrorParsingCommandLine" xml:space="preserve">
+    <value>:RUNNER: Got exception while parsing command line: '{0}'</value>
+  </data>
+  <data name="ExceptionLeaked" xml:space="preserve">
+    <value>Unhandled exception thrown from the partial trust application:\n{0}</value>
+  </data>
+  <data name="GeneralError" xml:space="preserve">
+    <value>ERROR: '{0}'</value>
+  </data>
+  <data name="PartialTrustRunnerUnsigned" xml:space="preserve">
+    <value>PartialTrustRunner is unsigned. This tool must be built with a strong name signature in order to correctly function.</value>
+  </data>
+  <data name="StartingApplication" xml:space="preserve">
+    <value>:RUNNER: start: "{0}{1}"</value>
+  </data>
+  <data name="UnknownOption" xml:space="preserve">
+    <value>Unknown command line option: '{0}'</value>
+  </data>
+</root>
