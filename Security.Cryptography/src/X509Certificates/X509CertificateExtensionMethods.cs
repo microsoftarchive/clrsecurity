@@ -101,21 +101,20 @@ namespace Security.Cryptography.X509Certificates
         /// </summary>
         [SecurityCritical]
         [SecurityTreatAsSafe]
+        [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of GetAlternateNames")]
         public static IEnumerable<X509AlternateName> GetIssuerAlternateNames(this X509Certificate certificate)
         {
+            List<X509AlternateName> alternateNames = new List<X509AlternateName>();
+
             Oid2 extensionOid = Oid2.FindByValue(CapiNative.WellKnownOids.IssuerAlternateName,
                                                  OidGroup.ExtensionOrAttribute);
-            foreach (X509AlternateName alternateName in certificate.GetAlternateNames(extensionOid))
-            {
-                yield return alternateName;
-            }
+            alternateNames.AddRange(certificate.GetAlternateNames(extensionOid));
 
             Oid2 extensionOid2 = Oid2.FindByValue(CapiNative.WellKnownOids.IssuerAlternateName2,
                                                   OidGroup.ExtensionOrAttribute);
-            foreach (X509AlternateName alternateName in certificate.GetAlternateNames(extensionOid2))
-            {
-                yield return alternateName;
-            }
+            alternateNames.AddRange(certificate.GetAlternateNames(extensionOid2));
+
+            return alternateNames;
         }
 
         /// <summary>
@@ -123,21 +122,20 @@ namespace Security.Cryptography.X509Certificates
         /// </summary>
         [SecurityCritical]
         [SecurityTreatAsSafe]
+        [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of GetAlternateNames")]
         public static IEnumerable<X509AlternateName> GetSubjectAlternateNames(this X509Certificate certificate)
         {
+            List<X509AlternateName> alternateNames = new List<X509AlternateName>();
+
             Oid2 extensionOid = Oid2.FindByValue(CapiNative.WellKnownOids.SubjectAlternateName,
                                                  OidGroup.ExtensionOrAttribute);
-            foreach (X509AlternateName alternateName in certificate.GetAlternateNames(extensionOid))
-            {
-                yield return alternateName;
-            }
+            alternateNames.AddRange(certificate.GetAlternateNames(extensionOid));
 
             Oid2 extensionOid2 = Oid2.FindByValue(CapiNative.WellKnownOids.SubjectAlternateName2,
                                                   OidGroup.ExtensionOrAttribute);
-            foreach (X509AlternateName alternateName in certificate.GetAlternateNames(extensionOid2))
-            {
-                yield return alternateName;
-            }
+            alternateNames.AddRange(certificate.GetAlternateNames(extensionOid2));
+
+            return alternateNames;
         }
 
         /// <summary>

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
@@ -463,6 +464,7 @@ namespace Security.Cryptography
         /// </summary>
         [SecurityCritical]
         [SecurityTreatAsSafe]
+        [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of Dispose")]
         internal static NCryptAlgorithmName[] EnumerateAlgorithms(SafeNCryptProviderHandle provider,
                                                                   NCryptAlgorithmOperations operations)
         {
@@ -507,6 +509,7 @@ namespace Security.Cryptography
         /// </summary>
         [SecurityCritical]
         [SecurityTreatAsSafe]
+        [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of LinkDemands")]
         internal static NCryptKeyName[] EnumerateKeys(SafeNCryptProviderHandle provider,
                                                       CngKeyOpenOptions openOptions)
         {
@@ -829,6 +832,7 @@ namespace Security.Cryptography
         /// <param name="index">0 based index into the array to read the structure from</param>
         /// <returns>the value of the structure at the index into the array</returns>
         [SecurityCritical]
+        [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use by a critical method")]
         internal T ReadArray<T>(uint index) where T : struct
         {
             checked

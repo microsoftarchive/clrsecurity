@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Security;
 using System.Security.Permissions;
@@ -51,14 +52,20 @@ namespace Security.Cryptography
         /// <param name="openOptions">options to use when opening the CNG keys</param>
         [SecurityCritical]
         [SecurityTreatAsSafe]
+        [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of OpenProvider")]
         public static IEnumerable<CngKey> GetKeys(this CngProvider provider, CngKeyOpenOptions openOptions)
         {
             using (SafeNCryptProviderHandle providerHandle = provider.OpenProvider())
             {
-                foreach (var key in NCryptNative.EnumerateKeys(providerHandle, openOptions))
+                NCryptNative.NCryptKeyName[] keyNames = NCryptNative.EnumerateKeys(providerHandle, openOptions);
+                CngKey[] keys = new CngKey[keyNames.Length];
+
+                for (int i = 0; i < keys.Length; ++i)
                 {
-                    yield return CngKey.Open(key.pszName, provider);
+                    keys[i] = CngKey.Open(keyNames[i].pszName, provider);
                 }
+
+                return keys;
             }
         }
 
@@ -107,15 +114,21 @@ namespace Security.Cryptography
         /// <param name="operations">operations that the returned algorithms should support</param>
         [SecurityCritical]
         [SecurityTreatAsSafe]
+        [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe exposure of OpenProvider")] 
         public static IEnumerable<CngAlgorithm> GetSupportedAlgorithms(this CngProvider provider,
                                                                        NCryptAlgorithmOperations operations)
         {
             using (SafeNCryptProviderHandle providerHandle = provider.OpenProvider())
             {
-                foreach (NCryptNative.NCryptAlgorithmName algorithm in NCryptNative.EnumerateAlgorithms(providerHandle, operations))
+                NCryptNative.NCryptAlgorithmName[] algorithmNames = NCryptNative.EnumerateAlgorithms(providerHandle, operations);
+                CngAlgorithm[] algorithms = new CngAlgorithm[algorithmNames.Length];
+
+                for (int i = 0; i < algorithmNames.Length; ++i)
                 {
-                    yield return new CngAlgorithm(algorithm.pszName);
+                    algorithms[i] = new CngAlgorithm(algorithmNames[i].pszName);
                 }
+
+                return algorithms;
             }
         }
 
