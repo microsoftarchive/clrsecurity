@@ -169,6 +169,24 @@ namespace Security.Cryptography.Test
             CryptoConfig2.AddAlgorithm(typeof(NewAlgorithm6), "NA5");
         }
 
+        [TestMethod]
+        public void CryptoConfig2CreateFactoryTest()
+        {
+            // Test that getting an AES factory can produce a delegate for AES types
+            Func<object> aesFactory = CryptoConfig2.CreateFactoryFromName("AES");
+            Aes aes = aesFactory() as Aes;
+            Assert.IsNotNull(aes);
+            
+            // Ensure the type is the same as the CreateFromName type
+            Aes createdAes = CryptoConfig2.CreateFromName("AES") as Aes;
+            Assert.AreEqual(createdAes.GetType(), aes.GetType());
+
+            // Ensure the factory returns different instances each time
+            Aes aes2 = aesFactory() as Aes;
+            Assert.IsNotNull(aes2);
+            Assert.AreNotSame(aes, aes2);
+        }
+
         /// <summary>
         ///     Utility method to assist in making sure a set of mappings are correctly registered in CryptoConfig2
         /// </summary>

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Security;
 using System.Security.Cryptography;
@@ -178,6 +179,48 @@ namespace Security.Cryptography
             {
                 map.Add(algorithm.FullName, algorithm);
             }
+        }
+
+        /// <summary>
+        ///     <para>
+        ///         CreateFactoryFromName is similar to <see cref="CreateFromName"/>, except that instead of
+        ///         returning a single instance of a crypto algorithm, CreateFactoryFromName returns a
+        ///         function that can create new instances of the algorithm.   This function will be more
+        ///         efficient to use if multiple intsances of the same algorithm are needed than calling
+        ///         CreateFromName repeatedly.
+        ///     </para>
+        ///     <para>
+        ///         Name comparisons are case insensitive.
+        ///     </para>
+        ///     <para>
+        ///         This method is thread safe.
+        ///     </para>
+        /// </summary>
+        /// <param name="name">name of the algorithm to create a factory for</param>
+        /// <exception cref="ArgumentNullException">if <paramref name="name"/> is null</exception>
+        public static Func<object> CreateFactoryFromName(string name)
+        {
+            // Figure out what type of algorithm we need to create
+            object algorithm = CreateFromName(name);
+            if (algorithm == null)
+            {
+                return null;
+            }
+
+            Type algorithmType = algorithm.GetType();
+
+            // Since we only need the algorithm type, rather than the full algorithm itself, we can clean up
+            // the algorithm instance if it is disposable
+            IDisposable disposableAlgorithm = algorithm as IDisposable;
+            if (disposableAlgorithm != null)
+            {
+                disposableAlgorithm.Dispose();
+            }
+
+            // Create a factory delegate which returns new instances of the algorithm type
+            NewExpression algorithmCreationExpression = Expression.New(algorithmType);
+            LambdaExpression creationFunction = Expression.Lambda<Func<object>>(algorithmCreationExpression);
+            return creationFunction.Compile() as Func<object>;
         }
 
         /// <summary>
