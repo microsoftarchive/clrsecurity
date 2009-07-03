@@ -41,6 +41,7 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -60,6 +61,8 @@
   <ItemGroup>
     <Compile Include="Principal\GroupSecurityIdentifierAttributes.cs" />
     <Compile Include="Principal\GroupSecurityIdentifierInformation.cs" />
+    <Compile Include="Principal\LogOnProvider.cs" />
+    <Compile Include="Principal\LogOnType.cs" />
     <Compile Include="Principal\NTAccountExtensionMethods.cs" />
     <Compile Include="Principal\SafeTokenHandle.cs" />
     <Compile Include="Principal\WindowsIdentityExtensionMethods.cs" />
