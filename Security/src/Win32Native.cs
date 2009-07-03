@@ -13,6 +13,94 @@ using Microsoft.Win32.SafeHandles;
 
 namespace Security
 {
+    //
+    // Public facing enumerations
+    //
+
+    /// <summary>
+    ///     The LogOnProvider enumeration contains the types of logon providers which may be used to perform
+    ///     the logon operation.
+    /// </summary>
+    public enum LogOnProvider
+    {
+        /// <summary>
+        ///     Use the default logon provider.  This is equivalent to the LOGON32_PROVIDER_DEFAULT provider.
+        /// </summary>
+        Default = 0,
+
+        /// <summary>
+        ///     Use the NTLM logon provider.  This is equivalent to the LOGON32_PROVIDER_WINNT40 provider.
+        /// </summary>
+        WinNT40 = 2,
+
+        /// <summary>
+        ///     Use the negotiate logon provider.  This is equivalent to the LOGON32_PROVIDER_WINNT50 provider.
+        /// </summary>
+        WinNT50 = 3,
+
+        /// <summary>
+        ///     Use the virtual logon provider.  This is equivalent to the LOGON32_PROVIDER_VIRTUAL provider.
+        /// </summary>
+        Virtual = 4,
+    }
+
+    /// <summary>
+    ///     The LogOnType enumeration contains the types of logon operations that may be performed.
+    /// </summary>
+    public enum LogOnType
+    {
+        /// <summary>
+        ///     No logon type - this is not a valid logon type to use with LogonUser
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        ///     Logon as an interactive user, which may cause additional caching and therefore not be
+        ///     appropriate for some server scenarios.  This is equivalent to the LOGON32_LOGON_INTERACTIVE
+        ///     logon type.
+        /// </summary>
+        Interactive = 2,
+
+        /// <summary>
+        ///     Logon type for servers to check cleartext passwords.  No caching is done for this type of
+        ///     logon.  This is equivalent to the LOGON32_LOGON_NETWORK logon type.
+        /// </summary>
+        Network = 3,
+
+        /// <summary>
+        ///     Logon type for servers who act on behalf of users without their intervention, or who
+        ///     processs many cleartext passwords at time.  This is equivalent to the LOGON32_LOGON_BATCH
+        ///     logon type.
+        /// </summary>
+        Batch = 4,
+
+        /// <summary>
+        ///     Logon as a service.  The account being logged on must have privilege to act as a service. 
+        ///     This is equivalent to the LOGON32_LOGON_SERVICE logon type.
+        /// </summary>
+        Service = 5,
+
+        /// <summary>
+        ///     Logon type for GINA DLLs to unlock the machine with.  This is equivalent to the
+        ///     LOGON32_LOGON_UNLOCK logon type.
+        /// </summary>
+        Unlock = 7,
+
+        /// <summary>
+        ///     Logon type which allows caching of the text password in the authentication provider in order
+        ///     to allow connections to multiple network services with the same credentials.  This is
+        ///     equivalent to the LOGON32_LOGON_NETWORK_CLEARTEXT logon type.
+        /// </summary>
+        NetworkClearText = 8,
+
+        /// <summary>
+        ///     Logon type which creates a token with the same identity as the current user token for the
+        ///     local proces, but provides new credentials for outbound network connections.  This is
+        ///     equivalent to the LOGON32_LOGON_NEW_CREDENTIALS logon type.
+        /// </summary>
+        NewCredentials = 9,
+    }
+
     /// <summary>
     ///     Native wrappers for Win32 APIs.
     ///     
@@ -94,6 +182,15 @@ namespace Security
                                                             SafeBuffer TokenInformation,
                                                             int TokenInformationLength,
                                                             [Out] out int ReturnLength);
+
+            [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            internal static extern bool LogonUser(string lpszUsername,
+                                                  string lpszDomain,
+                                                  IntPtr lpszPassword,      // LPWSTR
+                                                  LogOnType logonType,
+                                                  LogOnProvider logonProvider,
+                                                  [Out] out SafeTokenHandle phToken);
         }
 
         //
@@ -154,6 +251,93 @@ namespace Security
             }
 
             return buffer;
+        }
+
+        /// <summary>
+        ///     Logon a user with a string password.
+        /// </summary>
+        [SecurityCritical]
+        internal static SafeTokenHandle LogOnUser(string userName,
+                                                  string domain,
+                                                  string password,
+                                                  LogOnType logOnType,
+                                                  LogOnProvider logOnProvider)
+        {
+            Debug.Assert(!String.IsNullOrEmpty(userName), "!String.IsNullOrEmpty(userName)");
+
+            IntPtr passwordPointer = IntPtr.Zero;
+
+            RuntimeHelpers.PrepareConstrainedRegions();
+            try
+            {
+                if (password != null)
+                {
+                    passwordPointer = Marshal.StringToCoTaskMemUni(password);
+                }
+
+                return LogOnUser(userName, domain, passwordPointer, logOnType, logOnProvider);
+            }
+            finally
+            {
+                if (passwordPointer != IntPtr.Zero)
+                {
+                    Marshal.FreeCoTaskMem(passwordPointer);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Logon a user with a SecureString password.
+        /// </summary>
+        [SecurityCritical]
+        internal static SafeTokenHandle LogOnUser(string userName,
+                                                  string domain,
+                                                  SecureString password,
+                                                  LogOnType logOnType,
+                                                  LogOnProvider logOnProvider)
+        {
+            Debug.Assert(!String.IsNullOrEmpty(userName), "!String.IsNullOrEmpty(userName)");
+
+            IntPtr passwordPointer = IntPtr.Zero;
+
+            RuntimeHelpers.PrepareConstrainedRegions();
+            try
+            {
+                if (password != null)
+                {
+                    passwordPointer = Marshal.SecureStringToCoTaskMemUnicode(password);
+                }
+
+                return LogOnUser(userName, domain, passwordPointer, logOnType, logOnProvider);
+            }
+            finally
+            {
+                if (passwordPointer != IntPtr.Zero)
+                {
+                    Marshal.ZeroFreeCoTaskMemUnicode(passwordPointer);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Logon a user
+        /// </summary>
+        [SecurityCritical]
+        private static SafeTokenHandle LogOnUser(string userName,
+                                                 string domain,
+                                                 IntPtr password,
+                                                 LogOnType logonType,
+                                                 LogOnProvider logonProvider)
+        {
+            Debug.Assert(!String.IsNullOrEmpty(userName), "!String.IsNullOrEmpty(userName)");
+
+            SafeTokenHandle token = null;
+            if (!UnsafeNativeMethods.LogonUser(userName, domain, password, logonType, logonProvider, out token))
+            {
+                Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+            }
+
+            return token;
         }
     }
 

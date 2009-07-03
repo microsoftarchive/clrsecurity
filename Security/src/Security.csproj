@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="Principal\GroupSecurityIdentifierAttributes.cs" />
     <Compile Include="Principal\GroupSecurityIdentifierInformation.cs" />
+    <Compile Include="Principal\NTAccountExtensionMethods.cs" />
     <Compile Include="Principal\SafeTokenHandle.cs" />
     <Compile Include="Principal\WindowsIdentityExtensionMethods.cs" />
   </ItemGroup>
