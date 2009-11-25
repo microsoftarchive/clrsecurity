@@ -128,6 +128,26 @@ namespace Security.Cryptography.X509Certificates
         ///     The certificate is signed with RSA-SHA512
         /// </summary>
         RsaSha512,
+
+        /// <summary>
+        ///     The certificate is signed with ECDSA-SHA1
+        /// </summary>
+        ECDsaSha1,
+
+        /// <summary>
+        ///     The certificate is signed with ECDSA-SHA256
+        /// </summary>
+        ECDsaSha256,
+
+        /// <summary>
+        ///     The certificate is signed with ECDSA-SHA384
+        /// </summary>
+        ECDsaSha384,
+
+        /// <summary>
+        ///     The certificate is signed with ECDSA-SHA512
+        /// </summary>
+        ECDsaSha512,
     }
 
     /// <summary>
@@ -171,6 +191,17 @@ namespace Security.Cryptography.X509Certificates
         internal enum CertificateProperty
         {
             KeyProviderInfo                     = 2,    // CERT_KEY_PROV_INFO_PROP_ID 
+            KeyContext                          = 5,    // CERT_KEY_CONTEXT_PROP_ID
+        }
+
+        /// <summary>
+        ///     Flags for the CertSetCertificateContextProperty API
+        /// </summary>
+        [Flags]
+        internal enum CertificatePropertySetFlags
+        {
+            None                                = 0x00000000,
+            NoCryptRelease                      = 0x00000001,   // CERT_STORE_NO_CRYPT_RELEASE_FLAG
         }
 
         /// <summary>
@@ -202,6 +233,14 @@ namespace Security.Cryptography.X509Certificates
         {
             Success                 = 0x00000000,       // ERROR_SUCCESS
             MoreData                = 0x000000ea,       // ERROR_MORE_DATA
+        }
+
+        /// <summary>
+        ///     KeySpec for CERT_KEY_CONTEXT structures
+        /// </summary>
+        internal enum KeySpec
+        {
+            NCryptKey               = unchecked((int)0xffffffff)    // CERT_NCRYPT_KEY_SPEC
         }
 
         //
@@ -303,7 +342,15 @@ namespace Security.Cryptography.X509Certificates
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct CERT_KEY_PROV_INFO
+        internal struct CERT_KEY_CONTEXT
+        {
+            internal int cbSize;
+            internal IntPtr hNCryptKey;
+            internal KeySpec dwKeySpec;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct CRYPT_KEY_PROV_INFO
         {
             [MarshalAs(UnmanagedType.LPWStr)]
             internal string pwszContainerName;
@@ -350,7 +397,7 @@ namespace Security.Cryptography.X509Certificates
             internal static extern SafeCertContextHandle CertCreateSelfSignCertificate(SafeNCryptKeyHandle hCryptProvOrNCryptKey,
                                                                                        [In] ref CapiNative.CRYPTOAPI_BLOB pSubjectIssuerBlob,
                                                                                        X509CertificateCreationOptions dwFlags,
-                                                                                       IntPtr pKeyProvInfo, // PCRYPT_KEY_PROV_INFO
+                                                                                       [In] ref CRYPT_KEY_PROV_INFO pKeyProvInfo,
                                                                                        [In] ref CapiNative.CRYPT_ALGORITHM_IDENTIFIER pSignatureAlgorithm,
                                                                                        [In] ref Win32Native.SYSTEMTIME pStartTime,
                                                                                        [In] ref Win32Native.SYSTEMTIME pEndTime,
@@ -371,6 +418,14 @@ namespace Security.Cryptography.X509Certificates
                                                                           CertificateProperty dwPropId,
                                                                           [Out, MarshalAs(UnmanagedType.LPArray)] byte[] pvData,
                                                                           [In, Out] ref int pcbData);
+
+            // Overload of CertSetCertificateContextProperty for setting CERT_KEY_CONTEXT_PROP_ID
+            [DllImport("crypt32.dll", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            internal static extern bool CertSetCertificateContextProperty(SafeCertContextHandle pCertContext,
+                                                                          CertificateProperty dwPropId,
+                                                                          CertificatePropertySetFlags dwFlags,
+                                                                          [In] ref CERT_KEY_CONTEXT pvData);
 
             [DllImport("crypt32.dll", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
@@ -450,8 +505,10 @@ namespace Security.Cryptography.X509Certificates
         ///     Create a self signed certificate around a CNG key
         /// </summary>
         [SecurityCritical]
+        [SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", MessageId = "System.Runtime.InteropServices.SafeHandle.DangerousGetHandle", Justification = "Manual AddRef and handle retrieval to account for the release that will occur when the certificate is closed (see comment inline)")]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "SecurityCritical API which requires review from any other API that calls it")]
-        internal static SafeCertContextHandle CreateSelfSignedCertificate(SafeNCryptKeyHandle key,
+        internal static SafeCertContextHandle CreateSelfSignedCertificate(CngKey key,
+                                                                          bool takeOwnershipOfKey,
                                                                           byte[] subjectName,
                                                                           X509CertificateCreationOptions creationOptions,
                                                                           string signatureAlgorithmOid,
@@ -460,7 +517,6 @@ namespace Security.Cryptography.X509Certificates
                                                                           X509ExtensionCollection extensions)
         {
             Debug.Assert(key != null, "key != null");
-            Debug.Assert(!key.IsClosed && !key.IsInvalid, "!key.IsClosed && !key.IsInvalid");
             Debug.Assert(subjectName != null, "subjectName != null");
             Debug.Assert(!String.IsNullOrEmpty(signatureAlgorithmOid), "!String.IsNullOrEmpty(signatureAlgorithmOid)");
             Debug.Assert(extensions != null, "extensions != null");
@@ -538,10 +594,21 @@ namespace Security.Cryptography.X509Certificates
                     }
                 }
 
+                // Setup a CRYPT_KEY_PROV_INFO for the key
+                CRYPT_KEY_PROV_INFO keyProvInfo = new CRYPT_KEY_PROV_INFO();
+                keyProvInfo.pwszContainerName = key.UniqueName;
+                keyProvInfo.pwszProvName = key.Provider.Provider;
+                keyProvInfo.dwProvType = 0;     // NCRYPT
+                keyProvInfo.dwFlags = 0;
+                keyProvInfo.cProvParam = 0;
+                keyProvInfo.rgProvParam = IntPtr.Zero;
+                keyProvInfo.dwKeySpec = 0;
+
                 //
                 // Now that all of the needed data structures are setup, we can create the certificate
                 //
 
+                SafeCertContextHandle selfSignedCertHandle = null;
                 unsafe
                 {
                     fixed (byte* pSubjectName = &subjectName[0])
@@ -553,24 +620,75 @@ namespace Security.Cryptography.X509Certificates
 
                         // Now that we've converted all the inputs to native data structures, we can generate
                         // the self signed certificate for the input key.
-                        SafeCertContextHandle selfSignedCertHandle =
-                            UnsafeNativeMethods.CertCreateSelfSignCertificate(key,
-                                                                              ref nativeSubjectName,
-                                                                              creationOptions,
-                                                                              IntPtr.Zero,
-                                                                              ref nativeSignatureAlgorithm,
-                                                                              ref nativeStartTime,
-                                                                              ref nativeEndTime,
-                                                                              ref nativeExtensions);
-                        if (selfSignedCertHandle.IsInvalid)
+                        using (SafeNCryptKeyHandle keyHandle = key.Handle)
                         {
-                            throw new CryptographicException(Marshal.GetLastWin32Error());
+                            selfSignedCertHandle =
+                                UnsafeNativeMethods.CertCreateSelfSignCertificate(keyHandle,
+                                                                                  ref nativeSubjectName,
+                                                                                  creationOptions,
+                                                                                  ref keyProvInfo,
+                                                                                  ref nativeSignatureAlgorithm,
+                                                                                  ref nativeStartTime,
+                                                                                  ref nativeEndTime,
+                                                                                  ref nativeExtensions);
+                            if (selfSignedCertHandle.IsInvalid)
+                            {
+                                throw new CryptographicException(Marshal.GetLastWin32Error());
+                            }
                         }
-
-                        return selfSignedCertHandle;
                     }
                 }
 
+                Debug.Assert(selfSignedCertHandle != null, "selfSignedCertHandle != null");
+
+                // Attach a key context to the certificate which will allow Windows to find the private key
+                // associated with the certificate if the NCRYPT_KEY_HANDLE is ephemeral.
+                // is done.
+                using (SafeNCryptKeyHandle keyHandle = key.Handle)
+                {
+                    CERT_KEY_CONTEXT keyContext = new CERT_KEY_CONTEXT();
+                    keyContext.cbSize = Marshal.SizeOf(typeof(CERT_KEY_CONTEXT));
+                    keyContext.hNCryptKey = keyHandle.DangerousGetHandle();
+                    keyContext.dwKeySpec = KeySpec.NCryptKey;
+
+                    bool attachedProperty = false;
+                    int setContextError = 0;
+                        
+                    // Run in a CER to ensure accurate tracking of the transfer of handle ownership
+                    RuntimeHelpers.PrepareConstrainedRegions();
+                    try { }
+                    finally
+                    {
+                        CertificatePropertySetFlags flags = CertificatePropertySetFlags.None;
+                        if (!takeOwnershipOfKey)
+                        {
+                            // If the certificate is not taking ownership of the key handle, then it should
+                            // not release the handle when the context is released.
+                            flags |= CertificatePropertySetFlags.NoCryptRelease;
+                        }
+
+                        attachedProperty =
+                            UnsafeNativeMethods.CertSetCertificateContextProperty(selfSignedCertHandle,
+                                                                                  CertificateProperty.KeyContext,
+                                                                                  flags,
+                                                                                  ref keyContext);
+                        setContextError = Marshal.GetLastWin32Error();
+
+                        // If we succesfully transferred ownership of the key to the certificate,
+                        // then we need to ensure that we no longer release its handle.
+                        if (attachedProperty && takeOwnershipOfKey)
+                        {
+                            keyHandle.SetHandleAsInvalid();
+                        }
+                    }
+
+                    if (!attachedProperty)
+                    {
+                        throw new CryptographicException(setContextError);
+                    }
+                }
+
+                return selfSignedCertHandle;
             }
             finally
             {
@@ -800,7 +918,7 @@ namespace Security.Cryptography.X509Certificates
         internal static string MapCertificateSignatureAlgorithm(X509CertificateSignatureAlgorithm signatureAlgorithm)
         {
             Debug.Assert(signatureAlgorithm >= X509CertificateSignatureAlgorithm.RsaSha1 &&
-                         signatureAlgorithm <= X509CertificateSignatureAlgorithm.RsaSha512,
+                         signatureAlgorithm <= X509CertificateSignatureAlgorithm.ECDsaSha512,
                          "Invalid signature algorithm");
 
             switch (signatureAlgorithm)
@@ -816,6 +934,18 @@ namespace Security.Cryptography.X509Certificates
 
                 case X509CertificateSignatureAlgorithm.RsaSha512:
                     return CapiNative.WellKnownOids.RsaSha512;
+
+                case X509CertificateSignatureAlgorithm.ECDsaSha1:
+                    return CapiNative.WellKnownOids.ECDsaSha1;
+
+                case X509CertificateSignatureAlgorithm.ECDsaSha256:
+                    return CapiNative.WellKnownOids.ECDsaSha256;
+
+                case X509CertificateSignatureAlgorithm.ECDsaSha384:
+                    return CapiNative.WellKnownOids.ECDsaSha384;
+
+                case X509CertificateSignatureAlgorithm.ECDsaSha512:
+                    return CapiNative.WellKnownOids.ECDsaSha512;
 
                 default:
                     Debug.Assert(false, "Unknown certificate signature algorithm");

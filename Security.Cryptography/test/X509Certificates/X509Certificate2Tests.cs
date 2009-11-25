@@ -74,6 +74,7 @@ namespace Microsoft.Security.Cryptography.X509Certificates.Test
                     X509CertificateCreationParameters creationParams =
                         new X509CertificateCreationParameters(new X500DistinguishedName("CN=CngCert"));
                     creationParams.CertificateCreationOptions = X509CertificateCreationOptions.None;
+                    creationParams.TakeOwnershipOfKey = false;
 
                     // A CNG certificate using a named key which is linked to the cert itself should return true
                     X509Certificate2 cngFullCert = key.CreateSelfSignedCertificate(creationParams);
@@ -154,6 +155,7 @@ namespace Microsoft.Security.Cryptography.X509Certificates.Test
                     X509CertificateCreationParameters creationParams =
                         new X509CertificateCreationParameters(new X500DistinguishedName("CN=CngCert"));
                     creationParams.CertificateCreationOptions = X509CertificateCreationOptions.None;
+                    creationParams.TakeOwnershipOfKey = false;
 
                     // A CNG certificate using a named key which is linked to the cert itself should return true
                     X509Certificate2 cngCert = key.CreateSelfSignedCertificate(creationParams);
@@ -167,12 +169,10 @@ namespace Microsoft.Security.Cryptography.X509Certificates.Test
                     key.Delete();
                 }
 
-                // Ephemeral CNG keys will create self signed certificates that do not link back to a CNG key
-                // in the certificate (since there is no persisted CNG key to link to). 
                 using (CngKey key = CngKey.Create(CngAlgorithm2.Rsa))
                 {
                     X509Certificate2 ephemeralCert = key.CreateSelfSignedCertificate(new X500DistinguishedName("CN=EphemeralCngCert"));
-                    Assert.IsFalse(ephemeralCert.HasCngKey());
+                    Assert.IsTrue(ephemeralCert.HasCngKey());
                 }
             }
             finally

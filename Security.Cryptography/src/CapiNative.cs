@@ -178,6 +178,10 @@ namespace Security.Cryptography
         internal static class WellKnownOids
         {
             // Algorithm OIDS
+            internal static string ECDsaSha1    = "1.2.840.10045.4.1";          // szOID_ECDSA_SHA1
+            internal static string ECDsaSha256  = "1.2.840.10045.4.3.2";        // szOID_ECDSA_SHA256
+            internal static string ECDsaSha384  = "1.2.840.10045.4.3.3";        // szOID_ECDSA_SHA384
+            internal static string ECDsaSha512  = "1.2.840.10045.4.3.4";        // szOID_ECDSA_SHA512
             internal static string RsaSha1      = "1.2.840.113549.1.1.5";       // szOID_RSA_SHA1RSA
             internal static string RsaSha256    = "1.2.840.113549.1.1.11";      // szOID_RSA_SHA256RSA
             internal static string RsaSha384    = "1.2.840.113549.1.1.12";      // szOID_RSA_SHA384RSA

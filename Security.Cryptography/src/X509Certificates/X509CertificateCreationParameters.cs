@@ -18,11 +18,12 @@ namespace Security.Cryptography.X509Certificates
     public sealed class X509CertificateCreationParameters
     {
         private X500DistinguishedName m_subjectName;
-        private X509CertificateCreationOptions m_certificateCreationOptions = X509CertificateCreationOptions.DoNotLinkKeyInformation;
+        private X509CertificateCreationOptions m_certificateCreationOptions = X509CertificateCreationOptions.None;
         private X509CertificateSignatureAlgorithm m_signatureAlgorithm = X509CertificateSignatureAlgorithm.RsaSha1;
         private DateTime m_endTime = DateTime.UtcNow.AddYears(1);
         private DateTime m_startTime = DateTime.UtcNow;
         private X509ExtensionCollection m_extensions = new X509ExtensionCollection();
+        private bool m_takeOwnershipOfKey = true;
 
         /// <summary>
         ///     Creates a new X509CertificateCreationParameters object which can be used to create a new X509
@@ -100,13 +101,25 @@ namespace Security.Cryptography.X509Certificates
             set
             {
                 if (value < X509CertificateSignatureAlgorithm.RsaSha1 ||
-                    value > X509CertificateSignatureAlgorithm.RsaSha512)
+                    value > X509CertificateSignatureAlgorithm.ECDsaSha512)
                 {
                     throw new ArgumentOutOfRangeException("value");
                 }
 
                 m_signatureAlgorithm = value;
             }
+        }
+
+        /// <summary>
+        ///     Gets or sets a value indicating which object owns the lifetime of the incoming key
+        ///     once the certificate is created.  If set to true, then the certificate owns the lifetime
+        ///     of the key and the key object may be destroyed.  If set to false, the key object continues
+        ///     to own the key lifetime and must therefore outlive the certificate.
+        /// </summary>
+        public bool TakeOwnershipOfKey
+        {
+            get { return m_takeOwnershipOfKey; }
+            set { m_takeOwnershipOfKey = value; }
         }
 
         /// <summary>

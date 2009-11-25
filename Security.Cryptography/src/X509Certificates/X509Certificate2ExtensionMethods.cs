@@ -31,9 +31,15 @@ namespace Security.Cryptography.X509Certificates
         ///         The HasCngKey method can be used to test if the certificate does have its private key
         ///         stored with NCrypt.
         ///     </para>
+        ///     <para>
+        ///         The X509Certificate that is used to get the key must be kept alive for the lifetime of the
+        ///         CngKey that is returned - otherwise the handle may be cleaned up when the certificate is
+        ///         finalized.
+        ///     </para>
         /// </summary>
+        /// <permission cref="SecurityPermission">The caller of this method must have SecurityPermission/UnmanagedCode.</permission>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecurityPermission(SecurityAction.LinkDemand, UnmanagedCode = true)]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of LinkDemand methods")]
         public static CngKey GetCngPrivateKey(this X509Certificate2 certificate)
         {
@@ -41,7 +47,7 @@ namespace Security.Cryptography.X509Certificates
             {
                 return null;
             }
-
+            
             using (SafeCertContextHandle certContext = certificate.GetCertificateContext())
             using (SafeNCryptKeyHandle privateKeyHandle = X509Native.AcquireCngPrivateKey(certContext))
             {

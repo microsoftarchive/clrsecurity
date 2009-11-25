@@ -32,7 +32,7 @@ namespace Security.Cryptography.X509Certificates
     /// </permission>
     [SecurityCritical(SecurityCriticalScope.Everything)]
     [SecurityPermission(SecurityAction.LinkDemand, UnmanagedCode = true)]
-    public sealed class SafeCertContextHandle : SafeHandleMinusOneIsInvalid
+    public sealed class SafeCertContextHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         private SafeCertContextHandle() : base(true)
         {

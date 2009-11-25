@@ -27,7 +27,7 @@ namespace Microsoft.Security.Cryptography.X509Certificates.Test
             DateTime postCreationTime = DateTime.UtcNow;
 
             Assert.AreEqual(dn.Name, creationParams.SubjectName.Name);
-            Assert.AreEqual(X509CertificateCreationOptions.DoNotLinkKeyInformation, creationParams.CertificateCreationOptions);
+            Assert.AreEqual(X509CertificateCreationOptions.None, creationParams.CertificateCreationOptions);
             Assert.AreEqual(X509CertificateSignatureAlgorithm.RsaSha1, creationParams.SignatureAlgorithm);
 
             // The cert should be valid for 1 year (allowing for leap years, so 366 days could be valid as well)
@@ -44,6 +44,8 @@ namespace Microsoft.Security.Cryptography.X509Certificates.Test
                           creationParams.StartTime.Year == postCreationTime.Year);
 
             Assert.AreEqual(0, creationParams.Extensions.Count);
+
+            Assert.IsTrue(creationParams.TakeOwnershipOfKey);
         }
 
         /// <summary>
@@ -102,7 +104,7 @@ namespace Microsoft.Security.Cryptography.X509Certificates.Test
         public void X509CertificateCreationParametersSetBadAlgorithmTest2()
         {
             X509CertificateCreationParameters creationParams = new X509CertificateCreationParameters(new X500DistinguishedName("CN="));
-            creationParams.SignatureAlgorithm = (X509CertificateSignatureAlgorithm)((int)X509CertificateSignatureAlgorithm.RsaSha512 + 1);
+            creationParams.SignatureAlgorithm = (X509CertificateSignatureAlgorithm)((int)X509CertificateSignatureAlgorithm.ECDsaSha512 + 1);
         }
 
         /// <summary>

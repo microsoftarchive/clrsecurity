@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Security.Cryptography;
 
@@ -76,28 +77,26 @@ namespace Security.Cryptography.Test
         }
 
         /// <summary>
-        ///     Number of one bits in each possible 4 bit number
-        /// </summary>
-        private static uint[] s_oneCount = new uint[] { 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4 };
-
-        /// <summary>
         ///     Utility to check that we got something that looks like random bytes.  We basically just
-        ///     check to see tha we have approximately the same number of 1 and 0 bits.
+        ///     build up a list of the count of each possible set of 4 bits that we get and ensure that
+        ///     given a sufficient number of data points we have a relatively even distribution.
         /// </summary>
         private static bool AreRandomBytes(byte[] bytes)
         {
-            ulong ones = 0;
+            long[] nibbles = new long[16];
 
-            for (int i = 0; i < bytes.Length; ++i)
+            foreach (byte b in bytes)
             {
-                ones += s_oneCount[bytes[i] & 0x0F];
-                ones += s_oneCount[(bytes[i] & 0xF0) >> 4];
+                nibbles[b & 0xF]++;
+                nibbles[(b >> 4) & 0xF]++;
             }
 
-            ulong zeros = ((uint)bytes.Length * 8) - ones;
-            ulong difference = (ones > zeros) ? ones - zeros : zeros - ones;
+            long total = nibbles.Sum();
+            double average = nibbles.Average();
+            var deltas = from nibble in nibbles
+                         select Math.Ceiling(Math.Abs(nibble - average)) / total;
 
-            return ((double)difference / (double)ones) <= 0.1;
+            return deltas.All(d => d < 0.05);
         }
     }
 }

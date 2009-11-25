@@ -154,8 +154,8 @@ namespace Security.Cryptography.X509Certificates
                 if (X509Native.HasCertificateProperty(certContext,
                                                       X509Native.CertificateProperty.KeyProviderInfo))
                 {
-                    X509Native.CERT_KEY_PROV_INFO keyProvInfo =
-                        X509Native.GetCertificateProperty<X509Native.CERT_KEY_PROV_INFO>(certContext, X509Native.CertificateProperty.KeyProviderInfo);
+                    X509Native.CRYPT_KEY_PROV_INFO keyProvInfo =
+                        X509Native.GetCertificateProperty<X509Native.CRYPT_KEY_PROV_INFO>(certContext, X509Native.CertificateProperty.KeyProviderInfo);
 
                     return keyProvInfo.dwProvType == 0;
                 }
