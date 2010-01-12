@@ -3,7 +3,7 @@
   <Description>This is a default test run configuration for a local test run.</Description>
   <CodeCoverage enabled="true">
     <Regular>
-      <CodeCoverageItem binaryFile="bin\Release\Security.Cryptography.dll" pdbFile="bin\Release\Security.Cryptography.pdb" instrumentInPlace="true" />
+      <CodeCoverageItem binaryFile="bin\Release\Security.Cryptography.dll" pdbFile="bin\Release\Security.Cryptography.pdb" />
     </Regular>
   </CodeCoverage>
   <TestTypeSpecific>

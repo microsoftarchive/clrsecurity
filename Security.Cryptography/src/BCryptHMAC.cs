@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Security;
 using System.Security.Cryptography;
 
@@ -32,7 +33,13 @@ namespace Security.Cryptography
             Debug.Assert(key != null, "key != null");
 
             BlockSizeValue = blockSize;
-            HashName = hashName;
+
+            // We set the HashName up to be the CNG version of the hash, since the base type will instantiate
+            // the algorithm, and the CNG versions have different FIPS characteristics than the standard implementations.
+            HashName = String.Format(CultureInfo.InvariantCulture,
+                                     "System.Security.Cryptography.{0}Cng, {1}",
+                                     hashName,
+                                     typeof(SHA256Cng).Assembly.FullName);
 
             m_implementation = algorithmProvider;
 
