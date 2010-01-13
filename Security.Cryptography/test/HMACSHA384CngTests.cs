@@ -50,7 +50,7 @@ namespace Security.Cryptography.Test
             using (HMACSHA384 bclHmac = new HMACSHA384())
             using (HMACSHA384Cng cngHmac = new HMACSHA384Cng())
             {
-                Assert.AreEqual(bclHmac.HashName, cngHmac.HashName);
+                Assert.AreEqual(typeof(SHA384Cng).AssemblyQualifiedName, cngHmac.HashName);
                 Assert.AreEqual(bclHmac.HashSize, cngHmac.HashSize);
                 Assert.AreEqual(bclHmac.InputBlockSize, cngHmac.InputBlockSize);
                 Assert.AreEqual(bclHmac.OutputBlockSize, cngHmac.OutputBlockSize);

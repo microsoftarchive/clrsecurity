@@ -62,9 +62,8 @@ namespace Security.Cryptography
             if (algorithmProvider == null)
                 throw new ArgumentNullException("algorithmProvider");
 
-            HashName = "SHA256";
-
-            m_hmac = new BCryptHMAC(CngAlgorithm.Sha256, algorithmProvider, HashName, BlockSize, key);
+            m_hmac = new BCryptHMAC(CngAlgorithm.Sha256, algorithmProvider, "SHA256", BlockSize, key);
+            HashName = m_hmac.HashName;
         }
 
         protected override void Dispose(bool disposing)
