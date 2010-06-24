@@ -48,7 +48,7 @@
   <ItemGroup Condition="'$(FxOnly)' != 'true'">
     <Reference Include="Security.Cryptography, Version=1.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Releases\Security.Cryptography\1.3\Security.Cryptography.dll</HintPath>
+      <HintPath>..\..\Releases\Security.Cryptography\current\Security.Cryptography.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
