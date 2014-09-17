@@ -723,7 +723,7 @@ namespace Security.Cryptography
         /// </summary>
         /// <param name="hash">hash to sign</param>
         /// <exception cref="ArgumentNullException">if <paramref name="hash" /> is null</exception>
-        /// <exception cref="CryptographicException">if <paramref name="data" /> could not be signed</exception>
+        /// <exception cref="CryptographicException">if <paramref name="hash" /> could not be signed</exception>
         /// <exception cref="InvalidOperationException">
         ///     if SignatureHashAlgorithm is not MD5, SHA-1, SHA-256, SHA-384, or SHA-512
         /// </exception>
@@ -744,7 +744,7 @@ namespace Security.Cryptography
         /// <exception cref="ArgumentNullException">
         ///     if <paramref name="hash" /> or <paramref name="hashAlgorithm"/> are null
         ///  </exception>
-        /// <exception cref="CryptographicException">if <paramref name="data" /> could not be signed</exception>
+        /// <exception cref="CryptographicException">if <paramref name="hash" /> could not be signed</exception>
         /// <permission cref="KeyContainerPermission">
         ///      This method will demand KeyContainerPermission if the key being used is not ephemeral.
         /// </permission>

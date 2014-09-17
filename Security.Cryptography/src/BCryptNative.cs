@@ -68,6 +68,11 @@ namespace Security.Cryptography
             internal const string Rng = "RNG";                          // BCRYPT_RNG_ALGORITHM
             internal const string Rsa = "RSA";                          // BCRYPT_RSA_ALGORITHM
             internal const string TripleDes = "3DES";                   // BCRYPT_3DES_ALOGORITHM
+            internal const string Sha1 = "SHA1";                        // BCRYPT_SHA1_ALGORITHM
+            internal const string Sha256 = "SHA256";                    // BCRYPT_SHA256_ALGORITHM
+            internal const string Sha384 = "SHA384";                    // BCRYPT_SHA384_ALGORITHM
+            internal const string Sha512 = "SHA512";                    // BCRYPT_SHA512_ALGORITHM
+            internal const string Pbkdf2 = "PBKDF2";                    // BCRYPT_PBKDF2_ALGORITHM       
         }
 
         /// <summary>
@@ -150,6 +155,16 @@ namespace Security.Cryptography
             internal const string InitializationVector = "IV";          // BCRYPT_INITIALIZATION_VECTOR
             internal const string KeyLength = "KeyLength";              // BCRYPT_KEY_LENGTH
             internal const string ObjectLength = "ObjectLength";        // BCRYPT_OBJECT_LENGTH
+        }
+
+        /// <summary>
+        /// BCrypt parameter types (used in parameter lists)
+        /// </summary>
+        internal enum ParameterTypes
+        {
+            KdfHashAlgorithm = 0x0,
+            KdfSalt = 0xF,
+            KdfIterationCount = 0x10
         }
 
         /// <summary>
@@ -244,6 +259,22 @@ namespace Security.Cryptography
             internal int cbModulus;
             internal int cbPrime1;
             internal int cbPrime2;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct BCryptBuffer
+        {
+            internal int cbBuffer;
+            internal int BufferType;
+            internal IntPtr pvBuffer;       // PVOID
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct BCryptBufferDesc
+        {
+            internal int ulVersion;
+            internal int cBuffers;
+            internal IntPtr pBuffers;       // PBCryptBuffer
         }
 
         //
@@ -379,6 +410,24 @@ namespace Security.Cryptography
                                                                    [In, MarshalAs(UnmanagedType.LPArray)] byte[] pbInput,
                                                                    int cbInput,
                                                                    int dwFlags);
+
+            [DllImport("bcrypt.dll", EntryPoint = "BCryptKeyDerivation")]
+            internal static extern ErrorCode BCryptKeyDerivation(SafeBCryptKeyHandle hKey,
+                                                                 [In] ref BCryptBufferDesc pParamList,
+                                                                 [Out, MarshalAs(UnmanagedType.LPArray)] byte[] pbDerivedKey,
+                                                                 int cbDerivedKey,
+                                                                 [In, Out] ref int pcbResult,
+                                                                 int dwFlags);
+
+            [DllImport("bcrypt.dll", EntryPoint = "BCryptGenerateSymmetricKey")]
+            internal static extern ErrorCode BCryptGenerateSymmetricKey(SafeBCryptAlgorithmHandle hAlgorithm,
+                                                                        [Out] out SafeBCryptKeyHandle phKey,
+                                                                        [Out, MarshalAs(UnmanagedType.LPArray)] byte[] pbKeyObjectOptional,
+                                                                        int cbKeyObject,
+                                                                        [Out, MarshalAs(UnmanagedType.LPArray)] byte[] pbSecret,
+                                                                        int cbSecret,
+                                                                        int dwFlags);
+ 
         }
 
         /// <summary>
@@ -793,7 +842,7 @@ namespace Security.Cryptography
                                                                 AlgorithmProviderOptions options)
         {
             Debug.Assert(!String.IsNullOrEmpty(algorithm), "!String.IsNullOrEmpty(algorithm)");
-            Debug.Assert(!String.IsNullOrEmpty(implementation), "!String.IsNullOrEmpty(implementation)");
+            // Note that implementation may be NULL (in which case the default provider will be used)
 
             SafeBCryptAlgorithmHandle algorithmHandle = null;
             ErrorCode error = UnsafeNativeMethods.BCryptOpenAlgorithmProvider(out algorithmHandle,
@@ -1034,7 +1083,79 @@ namespace Security.Cryptography
 
             return output;
         }
-    }
+
+        /// <summary>
+        ///     Calls PBKDF2 via the <c>BCryptKeyDerivation</c> API.  <paramref name="hashName"/> specifies which of HMAC-SHA256, HMAC-SHA384 or HMAC-SHA512 to use. 
+        ///     See the <see cref="AlgorithmName"/> class for supported hash functions.
+        /// </summary>
+        [SecurityCritical]
+        [SecurityTreatAsSafe]
+        internal static byte[] PBKDF2(string hashName,
+                                      byte[] password,
+                                      byte[] salt,
+                                      ulong iterations)
+        {
+            // Open a hash object to get the digest length
+            SafeBCryptAlgorithmHandle hPrf = OpenAlgorithm(hashName, null);
+            int hashLength = GetInt32Property(hPrf, HashPropertyName.HashLength);
+            hPrf.Close();
+
+            // Create a "key" object from the password
+            SafeBCryptAlgorithmHandle hPbkdf2 = OpenAlgorithm(AlgorithmName.Pbkdf2, null);
+            
+            SafeBCryptKeyHandle hKey = new SafeBCryptKeyHandle();
+            ErrorCode error = UnsafeNativeMethods.BCryptGenerateSymmetricKey(hPbkdf2, out hKey, null, 0, password, password.Length, 0);
+            if (error != ErrorCode.Success)
+            {
+                throw new CryptographicException(Win32Native.GetNTStatusMessage((int)error));
+            }
+            hPbkdf2.Close();
+
+            // Prepare the param buffer
+            BCryptBuffer[] buffer = new BCryptBuffer[3];
+            buffer[0].BufferType = (int) ParameterTypes.KdfHashAlgorithm;
+            buffer[0].cbBuffer = hashName.Length*2;                 // *2 since a WCHAR is 2-bytes
+            buffer[0].pvBuffer = Marshal.StringToCoTaskMemUni(hashName);
+
+            buffer[1].BufferType = (int) ParameterTypes.KdfSalt;
+            buffer[1].cbBuffer = salt.Length;
+            buffer[1].pvBuffer = Marshal.AllocCoTaskMem(salt.Length);                                   
+            Marshal.Copy(salt, 0, buffer[1].pvBuffer, salt.Length);
+
+            buffer[2].BufferType = (int) ParameterTypes.KdfIterationCount;
+            buffer[2].cbBuffer = sizeof(ulong);
+            buffer[2].pvBuffer = Marshal.AllocCoTaskMem(buffer[2].cbBuffer);                            
+            Marshal.Copy(BitConverter.GetBytes(iterations), 0, buffer[2].pvBuffer, buffer[2].cbBuffer);
+
+            BCryptBufferDesc pParamList = new BCryptBufferDesc();
+            pParamList.ulVersion = 0;       //BCRYPTBUFFER_VERSION
+            pParamList.cBuffers = 3;
+            GCHandle gch = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            pParamList.pBuffers = gch.AddrOfPinnedObject();
+
+            // Derive the key
+            byte[] derivedKey = new byte[hashLength];
+            int pcbResult = 0;  
+            error = UnsafeNativeMethods.BCryptKeyDerivation(hKey, ref pParamList, derivedKey, derivedKey.Length, ref pcbResult, 0);
+            if (error != ErrorCode.Success)
+            {
+                throw new CryptographicException(Win32Native.GetNTStatusMessage((int)error));
+            }
+            if(pcbResult != hashLength)
+            {
+                throw new CryptographicException("Invalid result from BCryptKeyDerivation (PBKDF2).  Derived key is too short.");
+            }
+
+            hKey.Close();
+            Marshal.FreeCoTaskMem(buffer[0].pvBuffer);
+            Marshal.FreeCoTaskMem(buffer[1].pvBuffer);
+            Marshal.FreeCoTaskMem(buffer[2].pvBuffer);
+            gch.Free();
+
+            return derivedKey;
+        }
+    
+    }       // end class BCryptNative
 
     /// <summary>
     ///     SafeHandle for a native BCRYPT_ALG_HANDLE
@@ -1096,4 +1217,5 @@ namespace Security.Cryptography
             return BCryptDestroyKey(handle) == BCryptNative.ErrorCode.Success;
         }
     }
+
 }

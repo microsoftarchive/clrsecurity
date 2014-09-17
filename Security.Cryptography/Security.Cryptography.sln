@@ -1,10 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Security.Cryptography", "src\Security.Cryptography.csproj", "{BC2A6C7D-B214-4F63-8D78-49485FE47020}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Security.Cryptography.Test", "test\Security.Cryptography.Test.csproj", "{A70A5D06-F213-44DA-A2B9-FE8FBA4BA856}"
-EndProject
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30501.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{59141B16-4617-4553-A0A3-0C0A8A9D5231}"
 	ProjectSection(SolutionItems) = preProject
 		AssemblyVersion.cs = AssemblyVersion.cs
@@ -12,25 +10,68 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Security.Cryptography.vsmdi = Security.Cryptography.vsmdi
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Security.Cryptography", "src\Security.Cryptography.csproj", "{BC2A6C7D-B214-4F63-8D78-49485FE47020}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Security.Cryptography.Test", "test\Security.Cryptography.Test.csproj", "{A70A5D06-F213-44DA-A2B9-FE8FBA4BA856}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmark", "Benchmark\Benchmark.csproj", "{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}"
+EndProject
 Global
-	GlobalSection(TestCaseManagementSettings) = postSolution
-		CategoryFile = Security.Cryptography.vsmdi
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
 		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{BC2A6C7D-B214-4F63-8D78-49485FE47020}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BC2A6C7D-B214-4F63-8D78-49485FE47020}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC2A6C7D-B214-4F63-8D78-49485FE47020}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{BC2A6C7D-B214-4F63-8D78-49485FE47020}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{BC2A6C7D-B214-4F63-8D78-49485FE47020}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{BC2A6C7D-B214-4F63-8D78-49485FE47020}.Debug|x64.ActiveCfg = Debug|x64
+		{BC2A6C7D-B214-4F63-8D78-49485FE47020}.Debug|x64.Build.0 = Debug|x64
 		{BC2A6C7D-B214-4F63-8D78-49485FE47020}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC2A6C7D-B214-4F63-8D78-49485FE47020}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC2A6C7D-B214-4F63-8D78-49485FE47020}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{BC2A6C7D-B214-4F63-8D78-49485FE47020}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{BC2A6C7D-B214-4F63-8D78-49485FE47020}.Release|Win32.ActiveCfg = Release|Any CPU
+		{BC2A6C7D-B214-4F63-8D78-49485FE47020}.Release|x64.ActiveCfg = Release|x64
+		{BC2A6C7D-B214-4F63-8D78-49485FE47020}.Release|x64.Build.0 = Release|x64
 		{A70A5D06-F213-44DA-A2B9-FE8FBA4BA856}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A70A5D06-F213-44DA-A2B9-FE8FBA4BA856}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A70A5D06-F213-44DA-A2B9-FE8FBA4BA856}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{A70A5D06-F213-44DA-A2B9-FE8FBA4BA856}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{A70A5D06-F213-44DA-A2B9-FE8FBA4BA856}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{A70A5D06-F213-44DA-A2B9-FE8FBA4BA856}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{A70A5D06-F213-44DA-A2B9-FE8FBA4BA856}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A70A5D06-F213-44DA-A2B9-FE8FBA4BA856}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A70A5D06-F213-44DA-A2B9-FE8FBA4BA856}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{A70A5D06-F213-44DA-A2B9-FE8FBA4BA856}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{A70A5D06-F213-44DA-A2B9-FE8FBA4BA856}.Release|Win32.ActiveCfg = Release|Any CPU
+		{A70A5D06-F213-44DA-A2B9-FE8FBA4BA856}.Release|x64.ActiveCfg = Release|Any CPU
+		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Release|Any CPU.Build.0 = Release|Any CPU
+		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Release|Win32.ActiveCfg = Release|Any CPU
+		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Release|x64.ActiveCfg = Release|x64
+		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = Security.Cryptography.vsmdi
 	EndGlobalSection
 EndGlobal
