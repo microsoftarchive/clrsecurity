@@ -6,7 +6,6 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{59141B16-4617-4553-A0A3-0C0A8A9D5231}"
 	ProjectSection(SolutionItems) = preProject
 		AssemblyVersion.cs = AssemblyVersion.cs
-		LocalTestRun.testrunconfig = LocalTestRun.testrunconfig
 		Security.Cryptography.vsmdi = Security.Cryptography.vsmdi
 	EndProjectSection
 EndProject
