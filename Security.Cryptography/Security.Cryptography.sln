@@ -14,8 +14,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Security.Cryptography", "sr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Security.Cryptography.Test", "test\Security.Cryptography.Test.csproj", "{A70A5D06-F213-44DA-A2B9-FE8FBA4BA856}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmark", "Benchmark\Benchmark.csproj", "{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,19 +52,6 @@ Global
 		{A70A5D06-F213-44DA-A2B9-FE8FBA4BA856}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{A70A5D06-F213-44DA-A2B9-FE8FBA4BA856}.Release|Win32.ActiveCfg = Release|Any CPU
 		{A70A5D06-F213-44DA-A2B9-FE8FBA4BA856}.Release|x64.ActiveCfg = Release|Any CPU
-		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Release|Any CPU.Build.0 = Release|Any CPU
-		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Release|Win32.ActiveCfg = Release|Any CPU
-		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Release|x64.ActiveCfg = Release|x64
-		{448C5B11-7F7B-4D9B-9E6B-C8A0B7BF3002}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
