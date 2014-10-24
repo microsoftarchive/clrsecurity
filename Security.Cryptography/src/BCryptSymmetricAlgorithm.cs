@@ -43,7 +43,7 @@ namespace Security.Cryptography
         ///     Setup a BCrypt algorithm with our current parameters
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         private SafeBCryptAlgorithmHandle SetupAlgorithm()
         {
             SafeBCryptAlgorithmHandle algorithmHandle = BCryptNative.OpenAlgorithm(m_algorithm.Algorithm, m_algorithmProvider.Provider);
@@ -99,7 +99,7 @@ namespace Security.Cryptography
         //
 
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[] rgbIV)
         {
             if (rgbKey == null)
@@ -109,7 +109,7 @@ namespace Security.Cryptography
         }
 
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[] rgbIV)
         {
             if (rgbKey == null)

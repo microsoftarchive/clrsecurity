@@ -122,7 +122,6 @@ namespace Security.Cryptography
         // P/Invokes
         // 
 
-        [SecurityCritical(SecurityCriticalScope.Everything)]
         [SuppressUnmanagedCodeSecurity]
         internal static class UnsafeNativeMethods
         {
@@ -340,7 +339,7 @@ namespace Security.Cryptography
         ///     Decrypt data using OAEP padding
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal static byte[] DecryptDataOaep(SafeNCryptKeyHandle key,
                                                byte[] data,
                                                string hashAlgorithm)
@@ -361,7 +360,7 @@ namespace Security.Cryptography
         ///     Decrypt data using PKCS1 padding
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal static byte[] DecryptDataPkcs1(SafeNCryptKeyHandle key, byte[] data)
         {
             BCryptNative.BCRYPT_PKCS1_PADDING_INFO pkcs1Info = new BCryptNative.BCRYPT_PKCS1_PADDING_INFO();
@@ -377,7 +376,7 @@ namespace Security.Cryptography
         ///     Generic encryption method, wrapped by decryption calls for specific padding modes
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         private static byte[] EncryptData<T>(SafeNCryptKeyHandle key,
                                              byte[] data,
                                              ref T paddingInfo,
@@ -426,7 +425,7 @@ namespace Security.Cryptography
         ///     Encrypt data using OAEP padding
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal static byte[] EncryptDataOaep(SafeNCryptKeyHandle key,
                                                byte[] data,
                                                string hashAlgorithm)
@@ -447,7 +446,7 @@ namespace Security.Cryptography
         ///     Encrypt data using PKCS1 padding
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal static byte[] EncryptDataPkcs1(SafeNCryptKeyHandle key, byte[] data)
         {
             BCryptNative.BCRYPT_PKCS1_PADDING_INFO pkcs1Info = new BCryptNative.BCRYPT_PKCS1_PADDING_INFO();
@@ -463,7 +462,7 @@ namespace Security.Cryptography
         ///     Get an array of information about all of the algorithms supported by a provider
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of Dispose")]
         internal static NCryptAlgorithmName[] EnumerateAlgorithms(SafeNCryptProviderHandle provider,
                                                                   NCryptAlgorithmOperations operations)
@@ -508,7 +507,7 @@ namespace Security.Cryptography
         ///     Get an array of information about the keys stored in a KSP
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of LinkDemands")]
         internal static NCryptKeyName[] EnumerateKeys(SafeNCryptProviderHandle provider,
                                                       CngKeyOpenOptions openOptions)
@@ -565,7 +564,7 @@ namespace Security.Cryptography
         ///     Get an array of information about all of the installed storage providers on the machine
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal static NCryptProviderName[] EnumerateStorageProviders()
         {
             uint providerCount = 0;
@@ -722,7 +721,7 @@ namespace Security.Cryptography
         ///     Generic signature verification method, wrapped by verification calls for specific padding modes
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         private static bool VerifySignature<T>(SafeNCryptKeyHandle key,
                                                byte[] hash,
                                                byte[] signature,
@@ -755,7 +754,7 @@ namespace Security.Cryptography
         ///     Verify the signature of a hash using PKCS #1 padding
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal static bool VerifySignaturePkcs1(SafeNCryptKeyHandle key,
                                                   byte[] hash,
                                                   string hashAlgorithm,
@@ -782,7 +781,7 @@ namespace Security.Cryptography
         ///     Verify the signature of a hash using PSS padding
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal static bool VerifySignaturePss(SafeNCryptKeyHandle key,
                                                 byte[] hash,
                                                 string hashAlgorithm,
@@ -812,7 +811,6 @@ namespace Security.Cryptography
     /// <summary>
     ///     Handle for buffers that need to be released with NCryptFreeBuffer
     /// </summary>
-    [SecurityCritical(SecurityCriticalScope.Everything)]
     internal sealed class SafeNCryptBuffer : SafeHandleZeroOrMinusOneIsInvalid
     {
         internal SafeNCryptBuffer() : base(true)

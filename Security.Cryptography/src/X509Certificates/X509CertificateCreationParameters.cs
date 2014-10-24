@@ -70,7 +70,7 @@ namespace Security.Cryptography.X509Certificates
         {
             [SecurityPermission(SecurityAction.Demand, UnmanagedCode = true)]
             [SecurityCritical]
-            [SecurityTreatAsSafe]
+            [SecuritySafeCritical]
             get
             {
                 return ExtensionsNoDemand;

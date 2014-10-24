@@ -248,7 +248,7 @@ namespace Security.Cryptography
         /// </summary>
         /// <param name="group">OID group to enumerate, AllGroups to enumerate every OID</param>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         public static IEnumerable<Oid2> EnumerateOidInformation(OidGroup group)
         {
             foreach (CapiNative.CRYPT_OID_INFO oidInfo in CapiNative.EnumerateOidInformation(group))
@@ -293,7 +293,7 @@ namespace Security.Cryptography
         ///     true to look in the Active Directory for a match, false to skip network lookup
         /// </param>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         public static Oid2 FindByFriendlyName(string friendlyName, OidGroup group, bool useNetworkLookup)
         {
             CapiNative.CRYPT_OID_INFO oidInfo = new CapiNative.CRYPT_OID_INFO();
@@ -343,7 +343,7 @@ namespace Security.Cryptography
         ///     true to look in the Active Directory for a match, false to skip network lookup
         /// </param>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         public static Oid2 FindByValue(string oid, OidGroup group, bool useNetworkLookup)
         {
             CapiNative.CRYPT_OID_INFO oidInfo = new CapiNative.CRYPT_OID_INFO();
@@ -462,7 +462,7 @@ namespace Security.Cryptography
         ///     Convert an Oid2 into a CAPI OID_INFO
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         private CapiNative.CRYPT_OID_INFO ToOidInfo()
         {
             CapiNative.CRYPT_OID_INFO oidInfo = new CapiNative.CRYPT_OID_INFO();

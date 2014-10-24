@@ -25,6 +25,6 @@ using System.Security;
 [assembly: ComVisible(false)]
 
 [assembly: CLSCompliant(true)]
-[assembly: SecurityCritical(SecurityCriticalScope.Explicit)]
+//[assembly: SecurityCritical(SecurityCriticalScope.Explicit)]
 
 [assembly: NeutralResourcesLanguage("en-US")]

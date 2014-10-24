@@ -278,7 +278,6 @@ namespace Security.Cryptography
         // P/Invokes
         // 
 
-        [SecurityCritical(SecurityCriticalScope.Everything)]
         [SuppressUnmanagedCodeSecurity]
         private static class UnsafeNativeMethods
         {
@@ -318,13 +317,11 @@ namespace Security.Cryptography
         //
 
         // CryptEnumOIDInfo callback for Vista and later
-        [SecurityCritical(SecurityCriticalScope.Everything)]
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private delegate bool CryptEnumOidInfoCallback([In] ref CRYPT_OID_INFO pInfo, IntPtr pvArg);
 
         // CryptEnumOIDInfo callback for Windows 2003 and earlier
-        [SecurityCritical(SecurityCriticalScope.Everything)]
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private delegate bool CryptEnumOidInfoCallbackWin2k3([In] ref CRYPT_OID_INFO_WIN2K3 pInfo, IntPtr pvArg);
@@ -349,7 +346,7 @@ namespace Security.Cryptography
         }
 
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         [SuppressMessage("Microsoft.Reliability", "CA2004:RemoveCallsToGCKeepAlive", Justification = "This is keeping a managed delegate alive, not a native resource")]
         internal static CRYPT_OID_INFO[] EnumerateOidInformation(OidGroup group)
         {
@@ -549,7 +546,7 @@ namespace Security.Cryptography
         ///     Convert an older Win2k3 sized OID info structure into a full OID info structure
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of Marshal.SizeOf")]
         private static CRYPT_OID_INFO UpgradeOidInfo(CRYPT_OID_INFO_WIN2K3 oldOid)
         {

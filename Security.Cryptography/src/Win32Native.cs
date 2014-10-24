@@ -58,7 +58,6 @@ namespace Security.Cryptography
             }
         }
 
-        [SecurityCritical(SecurityCriticalScope.Everything)]
         [SuppressUnmanagedCodeSecurity]
         private static class UnsafeNativeMethods
         {
@@ -88,7 +87,7 @@ namespace Security.Cryptography
         ///     message table.
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe to expose")]
         internal static string FormatMessageFromLibrary(int message, string library)
         {
@@ -141,7 +140,6 @@ namespace Security.Cryptography
     ///     This is required rather than having a seperate safe handle own the key data buffer blob so
     ///     that we can ensure that the key handle is disposed of before the key data buffer is freed.
     /// </summary>
-    [SecurityCritical(SecurityCriticalScope.Everything)]
     internal abstract class SafeHandleWithBuffer : SafeHandleZeroOrMinusOneIsInvalid
     {
         private IntPtr m_dataBuffer;
@@ -222,7 +220,6 @@ namespace Security.Cryptography
     /// <summary>
     ///     SafeHandle for a native HMODULE
     /// </summary>
-    [SecurityCritical(SecurityCriticalScope.Everything)]
     internal sealed class SafeLibraryHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         private SafeLibraryHandle() : base(true)
@@ -245,7 +242,6 @@ namespace Security.Cryptography
     /// <summary>
     ///     SafeHandle for memory allocated with LocalAlloc
     /// </summary>
-    [SecurityCritical(SecurityCriticalScope.Everything)]
     internal sealed class SafeLocalAllocHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         private SafeLocalAllocHandle() : base(true)

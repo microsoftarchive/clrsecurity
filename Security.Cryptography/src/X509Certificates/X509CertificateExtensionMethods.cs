@@ -100,7 +100,7 @@ namespace Security.Cryptography.X509Certificates
         ///     Get all of the alternate names a certificate has for its issuer
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of GetAlternateNames")]
         public static IEnumerable<X509AlternateName> GetIssuerAlternateNames(this X509Certificate certificate)
         {
@@ -121,7 +121,7 @@ namespace Security.Cryptography.X509Certificates
         ///     Get all of the alternate names a certificate has for its subject
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of GetAlternateNames")]
         public static IEnumerable<X509AlternateName> GetSubjectAlternateNames(this X509Certificate certificate)
         {
@@ -145,7 +145,7 @@ namespace Security.Cryptography.X509Certificates
         ///     linked by the certificate and is contained directly in it, this method will return false.
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of LinkDemand members")]
         public static bool HasCngKey(this X509Certificate certificate)
         {

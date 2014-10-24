@@ -67,14 +67,14 @@ namespace Security.Cryptography
         public int InputBlockSize
         {
             [SecurityCritical]
-            [SecurityTreatAsSafe]
+            [SecuritySafeCritical]
             get { return BCryptNative.GetInt32Property(m_algorithm, BCryptNative.ObjectPropertyName.BlockLength); }
         }
 
         public int OutputBlockSize
         {
             [SecurityCritical]
-            [SecurityTreatAsSafe]
+            [SecuritySafeCritical]
             get { return BCryptNative.GetInt32Property(m_algorithm, BCryptNative.ObjectPropertyName.BlockLength); }
         }
 
@@ -106,7 +106,7 @@ namespace Security.Cryptography
         }
 
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         public byte[] TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)
         {
             if (inputBuffer == null)
@@ -147,7 +147,7 @@ namespace Security.Cryptography
         }
 
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         public void Dispose()
         {
             if (m_key != null)
@@ -165,7 +165,7 @@ namespace Security.Cryptography
         ///     Decrypt ciphertext into plaintext without depadding the output
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         private int DecryptBlocks(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, bool bufferLastBlock)
         {
             Debug.Assert(inputBuffer != null, "inputBuffer != null");
@@ -240,7 +240,7 @@ namespace Security.Cryptography
         ///     Encrypt plaintext into ciphertext without applying padding
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         private int EncryptBlocks(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)
         {
             Debug.Assert(inputBuffer != null, "inputBuffer != null");

@@ -19,7 +19,7 @@ namespace Security.Cryptography
         private CngProvider m_implementation;
 
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal BCryptHMAC(CngAlgorithm algorithm,
                             CngProvider algorithmProvider,
                             string hashName,
@@ -82,7 +82,7 @@ namespace Security.Cryptography
         }
 
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         protected override void Dispose(bool disposing)
         {
             try
@@ -112,7 +112,7 @@ namespace Security.Cryptography
         }
 
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal void HashCoreImpl(byte[] rgb, int ib, int cb)
         {
             if (rgb == null)
@@ -136,14 +136,14 @@ namespace Security.Cryptography
         }
 
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal byte[] HashFinalImpl()
         {
             return BCryptNative.FinishHash(m_hash);
         }
 
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         public override void Initialize()
         {
             Debug.Assert(m_algorithm != null, "m_algorithm != null");

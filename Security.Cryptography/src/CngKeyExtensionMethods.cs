@@ -81,7 +81,7 @@ namespace Security.Cryptography
         ///     to be false.
         /// </permission>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of LinkDemand protected methods")]
         [SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", MessageId = "System.Runtime.InteropServices.SafeHandle.DangerousGetHandle", Justification = "Used in a CER block with AddRef and Release")]
         public static X509Certificate2 CreateSelfSignedCertificate(this CngKey key,

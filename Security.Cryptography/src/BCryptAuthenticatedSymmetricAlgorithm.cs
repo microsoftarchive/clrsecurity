@@ -22,7 +22,7 @@ namespace Security.Cryptography
         private CngProvider m_implementation;
 
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal BCryptAuthenticatedSymmetricAlgorithm(CngAlgorithm algorithm,
                                                        CngProvider implementation,
                                                        KeySizes[] legalBlockSizes,
@@ -116,7 +116,7 @@ namespace Security.Cryptography
         }
 
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         public override IAuthenticatedCryptoTransform CreateAuthenticatedEncryptor(byte[] rgbKey,
                                                                                    byte[] rgbIV,
                                                                                    byte[] rgbAuthenticatedData)
@@ -130,7 +130,7 @@ namespace Security.Cryptography
         }
 
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         public override ICryptoTransform CreateDecryptor(byte[] rgbKey,
                                                          byte[] rgbIV,
                                                          byte[] rgbAuthenticatedData,
@@ -182,7 +182,7 @@ namespace Security.Cryptography
         ///     Update the legal tag sizes for this algorithm
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         private void UpdateLegalTagSizes()
         {
             using (SafeBCryptAlgorithmHandle algorithm = SetupAlgorithm())

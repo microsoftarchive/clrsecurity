@@ -30,7 +30,6 @@ namespace Security.Cryptography.X509Certificates
     /// <permission cref="SecurityPermission">
     ///     The immediate caller must have SecurityPermission/UnmanagedCode to use this type.
     /// </permission>
-    [SecurityCritical(SecurityCriticalScope.Everything)]
     [SecurityPermission(SecurityAction.LinkDemand, UnmanagedCode = true)]
     public sealed class SafeCertContextHandle : SafeHandleZeroOrMinusOneIsInvalid
     {

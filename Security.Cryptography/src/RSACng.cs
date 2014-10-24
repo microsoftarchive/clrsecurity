@@ -97,7 +97,7 @@ namespace Security.Cryptography
         /// <exception cref="ArgumentException">if <paramref name="key" /> is not an RSA key</exception>
         /// <exception cref="ArgumentNullException">if <paramref name="key" /> is null</exception>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         public RSACng(CngKey key)
         {
             if (key == null)
@@ -165,7 +165,7 @@ namespace Security.Cryptography
         public CngKey Key
         {
             [SecurityCritical]
-            [SecurityTreatAsSafe]
+            [SecuritySafeCritical]
             [SecurityPermission(SecurityAction.LinkDemand, UnmanagedCode = true)]
             [SecurityPermission(SecurityAction.Assert, UnmanagedCode = true)]
             get
@@ -234,7 +234,7 @@ namespace Security.Cryptography
         public CngProvider Provider
         {
             [SecurityCritical]
-            [SecurityTreatAsSafe]
+            [SecuritySafeCritical]
             get { return Key.Provider; }
         }
 
@@ -379,7 +379,7 @@ namespace Security.Cryptography
         ///      KeyContainerPermission will be demanded.
         /// </permission>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of SizeOf")]
         public override RSAParameters ExportParameters(bool includePrivateParameters)
         {
@@ -479,7 +479,7 @@ namespace Security.Cryptography
         ///     /> is a full key pair and the default KSP is used
         /// </exception>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of SizeOf")]
         public override void ImportParameters(RSAParameters parameters)
         {
@@ -574,7 +574,7 @@ namespace Security.Cryptography
         ///      This method requires KeyContainerPermission to the key in use if it is not ephemeral.
         /// </permission>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         public override byte[] DecryptValue(byte[] rgb)
         {
             if (rgb == null)
@@ -615,7 +615,7 @@ namespace Security.Cryptography
         /// <exception cref="ArgumentNullException">if <paramref name="rgb" /> is null</exception>
         /// <exception cref="CryptographicException">if <paramref name="rgb" /> could not be decrypted</exception>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         public override byte[] EncryptValue(byte[] rgb)
         {
             if (rgb == null)
@@ -749,7 +749,7 @@ namespace Security.Cryptography
         ///      This method will demand KeyContainerPermission if the key being used is not ephemeral.
         /// </permission>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         public byte[] SignHash(byte[] hash, CngAlgorithm hashAlgorithm)
         {
             if (hash == null)
@@ -906,7 +906,7 @@ namespace Security.Cryptography
         /// </exception>
         /// <returns>true if the signature verifies for the hash, false if it does not</returns>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         public bool VerifyHash(byte[] hash, byte[] signature, CngAlgorithm hashAlgorithm)
         {
             if (hash == null)

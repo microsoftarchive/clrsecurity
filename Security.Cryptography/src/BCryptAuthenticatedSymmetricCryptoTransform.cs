@@ -150,7 +150,7 @@ namespace Security.Cryptography
         }
 
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         [ReliabilityContract(Consistency.MayCorruptInstance, Cer.Success)]
         private void Dispose(bool disposing)
         {
@@ -231,7 +231,7 @@ namespace Security.Cryptography
         public int InputBlockSize
         {
             [SecurityCritical]
-            [SecurityTreatAsSafe]
+            [SecuritySafeCritical]
             get { return BCryptNative.GetInt32Property(m_algorithm, BCryptNative.ObjectPropertyName.BlockLength); }
         }
 
@@ -241,7 +241,7 @@ namespace Security.Cryptography
         public int OutputBlockSize
         {
             [SecurityCritical]
-            [SecurityTreatAsSafe]
+            [SecuritySafeCritical]
             get { return BCryptNative.GetInt32Property(m_algorithm, BCryptNative.ObjectPropertyName.BlockLength); }
         }
 
@@ -249,7 +249,7 @@ namespace Security.Cryptography
         ///     Get the authentication tag generated from encryption.
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         public byte[] GetTag()
         {
             // Authentication tags are only generated for encryption operations - they are input to decryption
@@ -362,7 +362,7 @@ namespace Security.Cryptography
         ///     Transform given blocks of data
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         private byte[] CngTransform(byte[] input, int inputOffset, int inputCount)
         {
             Debug.Assert(m_key != null, "key != null");

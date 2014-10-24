@@ -281,7 +281,6 @@ namespace Security.Cryptography
         // P/Invokes
         //
 
-        [SecurityCritical(SecurityCriticalScope.Everything)]
         [SuppressUnmanagedCodeSecurity]
         private static class UnsafeNativeMethods
         {
@@ -534,7 +533,7 @@ namespace Security.Cryptography
         ///     Fill a buffer with radom bytes
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal static void GenerateRandomBytes(SafeBCryptAlgorithmHandle algorithm, byte[] buffer)
         {
             Debug.Assert(algorithm != null, "algorithm != null");
@@ -777,7 +776,7 @@ namespace Security.Cryptography
         ///     BCRYPT_INIT_AUTH_MODE_INFO macro)
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal static void InitializeAuthnenticatedCipherModeInfo(ref BCRYPT_AUTHENTICATED_CIPHER_MODE_INFO authInfo)
         {
             authInfo.cbSize = Marshal.SizeOf(typeof(BCRYPT_AUTHENTICATED_CIPHER_MODE_INFO));
@@ -925,7 +924,7 @@ namespace Security.Cryptography
         ///     Decrypt some blocks of data
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal static byte[] SymmetricDecrypt(SafeBCryptKeyHandle key, byte[] iv, byte[] input)
         {
             Debug.Assert(key != null, "key != null");
@@ -1006,7 +1005,7 @@ namespace Security.Cryptography
         ///     Encrypt some blocks of data
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal static byte[] SymmetricEncrypt(SafeBCryptKeyHandle key, byte[] iv, byte[] input)
         {
             Debug.Assert(key != null, "key != null");
@@ -1046,7 +1045,7 @@ namespace Security.Cryptography
         ///     Encrypt some blocks of data using authentication information
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal static byte[] SymmetricEncrypt(SafeBCryptKeyHandle key,
                                                 byte[] input,
                                                 byte[] chainData,
@@ -1089,7 +1088,7 @@ namespace Security.Cryptography
         ///     See the <see cref="AlgorithmName"/> class for supported hash functions.
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal static byte[] PBKDF2(string hashName,
                                       byte[] password,
                                       byte[] salt,
@@ -1160,7 +1159,6 @@ namespace Security.Cryptography
     /// <summary>
     ///     SafeHandle for a native BCRYPT_ALG_HANDLE
     /// </summary>
-    [SecurityCritical(SecurityCriticalScope.Everything)]
     internal sealed class SafeBCryptAlgorithmHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         private SafeBCryptAlgorithmHandle() : base(true)
@@ -1183,7 +1181,6 @@ namespace Security.Cryptography
     /// <summary>
     ///     SafeHandle for a BCRYPT_HASH_HANDLE.
     /// </summary>
-    [SecurityCritical(SecurityCriticalScope.Everything)]
     internal sealed class SafeBCryptHashHandle : SafeHandleWithBuffer
     {
         [DllImport("bcrypt.dll")]
@@ -1202,7 +1199,6 @@ namespace Security.Cryptography
     /// <summary>
     ///     SafeHandle for a native BCRYPT_KEY_HANDLE.
     /// </summary>
-    [SecurityCritical(SecurityCriticalScope.Everything)]
     internal sealed class SafeBCryptKeyHandle : SafeHandleWithBuffer
     {
         [DllImport("bcrypt.dll")]

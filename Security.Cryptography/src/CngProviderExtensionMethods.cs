@@ -51,7 +51,7 @@ namespace Security.Cryptography
         /// <param name="provider">CngProvider to enumerate the keys of</param>
         /// <param name="openOptions">options to use when opening the CNG keys</param>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe use of OpenProvider")]
         public static IEnumerable<CngKey> GetKeys(this CngProvider provider, CngKeyOpenOptions openOptions)
         {
@@ -113,7 +113,7 @@ namespace Security.Cryptography
         /// <param name="provider">CngProvider to enumerate the supported algorithms of</param>
         /// <param name="operations">operations that the returned algorithms should support</param>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         [SuppressMessage("Microsoft.Security", "CA2122:DoNotIndirectlyExposeMethodsWithLinkDemands", Justification = "Safe exposure of OpenProvider")] 
         public static IEnumerable<CngAlgorithm> GetSupportedAlgorithms(this CngProvider provider,
                                                                        NCryptAlgorithmOperations operations)

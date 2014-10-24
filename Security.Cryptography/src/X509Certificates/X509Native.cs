@@ -389,7 +389,6 @@ namespace Security.Cryptography.X509Certificates
         // P/Invokes
         //
 
-        [SecurityCritical(SecurityCriticalScope.Everything)]
         [SuppressUnmanagedCodeSecurity]
         internal static class UnsafeNativeMethods
         {
@@ -767,7 +766,7 @@ namespace Security.Cryptography.X509Certificates
         ///     Find the certificate extension identified with the given OID
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal static CERT_EXTENSION FindExtension(SafeCertContextHandle certificateContext, string extensionOid)
         {
             Debug.Assert(certificateContext != null, "certificateContext != null");
@@ -875,7 +874,7 @@ namespace Security.Cryptography.X509Certificates
         ///     Determine if a certificate context has a particular extension
         /// </summary>
         [SecurityCritical]
-        [SecurityTreatAsSafe]
+        [SecuritySafeCritical]
         internal static bool HasExtension(SafeCertContextHandle certificateContext, string extensionOid)
         {
             Debug.Assert(certificateContext != null, "certificateContext != null");
