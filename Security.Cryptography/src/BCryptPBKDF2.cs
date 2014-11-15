@@ -63,7 +63,22 @@ namespace Security.Cryptography
             if(!PBKDF2HashAlgorithm.ValidateHashName(hashName))
                 throw new ArgumentException("Invalid hash name for PBKDF2");
 
-            return BCryptNative.PBKDF2(hashName, password, salt, (UInt64) cIterations);
+            byte[] digest = null;
+
+            double vers = Environment.OSVersion.Version.Major + Environment.OSVersion.Version.Minor * 0.1;
+
+            if(vers > 6.1)
+            { 
+                // The BCryptKeyDerivation API is only supported on Win8/Server 2012 and above
+                digest = BCryptNative.PBKDF2BCryptKeyDerivation(hashName, password, salt, (UInt64) cIterations);
+            }
+            else
+            {
+                // Fall back to BCryptDeriveKeyPBKDF2, which is roughly 2x slower on systems without the KeyDerivation API
+                digest = BCryptNative.PBKDF2BCryptDeriveKeyPBKDF2(hashName, password, salt, (UInt64)cIterations);
+            }
+
+            return digest;
         }
         
     }

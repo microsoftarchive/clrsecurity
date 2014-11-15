@@ -426,6 +426,17 @@ namespace Security.Cryptography
                                                                         [Out, MarshalAs(UnmanagedType.LPArray)] byte[] pbSecret,
                                                                         int cbSecret,
                                                                         int dwFlags);
+
+            [DllImport("bcrypt.dll", EntryPoint = "BCryptDeriveKeyPBKDF2")]
+            internal static extern ErrorCode BCryptDeriveKeyPBKDF2(SafeBCryptAlgorithmHandle hPrf,
+                                                                   [In, MarshalAs(UnmanagedType.LPArray)] byte[] pbPassword,
+                                                                   int cbPassword,
+                                                                   [In, MarshalAs(UnmanagedType.LPArray)] byte[] pbSalt,
+                                                                   int cbSalt,
+                                                                   ulong cIterations,
+                                                                   [Out, MarshalAs(UnmanagedType.LPArray)] byte[] pbDerivedKey,
+                                                                   int cbDerivedKey,
+                                                                   int dwFlags);
  
         }
 
@@ -1084,12 +1095,13 @@ namespace Security.Cryptography
         }
 
         /// <summary>
-        ///     Calls PBKDF2 via the <c>BCryptKeyDerivation</c> API.  <paramref name="hashName"/> specifies which of HMAC-SHA256, HMAC-SHA384 or HMAC-SHA512 to use. 
-        ///     See the <see cref="AlgorithmName"/> class for supported hash functions.
+        ///     Calls PBKDF2 via the <c>BCryptKeyDerivation</c> API.  <param name="hashName"/> specifies which of HMAC-SHA256, HMAC-SHA384 or HMAC-SHA512 to use. 
+        ///     See the <see cref="AlgorithmName"/> class for supported hash functions.  <param name="password"/> is the password, and <param name="salt"/> 
+        ///     is the salt and <param name="iterations"/> is the iteration count.    
         /// </summary>
         [SecurityCritical]
         [SecuritySafeCritical]
-        internal static byte[] PBKDF2(string hashName,
+        internal static byte[] PBKDF2BCryptKeyDerivation(string hashName,
                                       byte[] password,
                                       byte[] salt,
                                       ulong iterations)
@@ -1153,7 +1165,40 @@ namespace Security.Cryptography
 
             return derivedKey;
         }
-    
+
+
+
+        /// <summary>
+        ///     Call PBKDF2 via the BCryptDeriveKeyPBKDF2 API. <param name="hashName"/> specifies which of HMAC-SHA256, HMAC-SHA384 or HMAC-SHA512 to use
+        ///     See the <see cref="AlgorithmName"/> class for supported hash functions. <param name="password"/> is the password, and <param name="salt"/> 
+        ///     is the salt and <param name="iterations"/> is the iteration count. 
+        /// </summary>
+        [SecurityCritical]
+        [SecurityTreatAsSafe]
+        internal static byte[] PBKDF2BCryptDeriveKeyPBKDF2(string hashName,
+                                      byte[] password,
+                                      byte[] salt,
+                                      ulong iterations)
+        {
+            // Open handle for HMAC-hashName, with the default algorithm provider
+            SafeBCryptAlgorithmHandle hPrf = OpenAlgorithm(hashName, null, AlgorithmProviderOptions.HmacAlgorithm);
+
+            // Get the hash length
+            int hashLength = GetInt32Property(hPrf, HashPropertyName.HashLength);
+            byte[] derivedKey = new byte[hashLength];
+
+            ErrorCode error = UnsafeNativeMethods.BCryptDeriveKeyPBKDF2(hPrf, password, password.Length, salt, salt.Length, iterations, derivedKey, derivedKey.Length, 0);
+            if (error != ErrorCode.Success)
+            {
+                throw new CryptographicException(Win32Native.GetNTStatusMessage((int)error));
+            }
+
+            hPrf.Close();
+
+            return derivedKey;
+        }
+
+
     }       // end class BCryptNative
 
     /// <summary>
